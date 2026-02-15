@@ -1,4 +1,4 @@
-name: Build H5 Game (AUTO COLLECT)
+name: Build H5 Game (FIXED)
 
 on:
   workflow_dispatch:
@@ -16,21 +16,19 @@ jobs:
       - name: Install Neutralinojs
         run: npm install -g @neutralinojs/neu
 
-      - name: Create wrapper
-        run: neu create wrapper --template minimal
+      - name: Create Neutralino wrapper
+        run: neu create wrapper
 
-      - name: Auto collect game files
+      - name: Auto collect files
         run: |
           robocopy . wrapper\resources ^
             /E ^
             /XD wrapper .git .github node_modules ^
-            /XF package.json package-lock.json ^
             /R:0 /W:0
 
-      - name: Set entry to main.html
+      - name: Rename entry file for Neutralino
         run: |
-          powershell -Command ^
-          "(Get-Content wrapper\\neutralino.config.json) -replace 'index.html','main.html' | Set-Content wrapper\\neutralino.config.json"
+          copy wrapper\resources\main.html wrapper\resources\index.html
 
       - name: Build EXE
         run: |
@@ -60,6 +58,10 @@ jobs:
             --exclude="wrapper" \
             ./ web/
 
+      - name: Create index.html alias
+        run: |
+          cp web/main.html web/index.html
+
       - name: Install Capacitor
         run: |
           npm install @capacitor/core
@@ -71,7 +73,12 @@ jobs:
           npx cap init Game com.example.game --web-dir web
 
       - name: Add Android
-        run: npx cap add android
+        run: |
+          npx cap add android
+
+      - name: Sync Capacitor
+        run: |
+          npx cap sync android
 
       - name: Build APK
         run: |
