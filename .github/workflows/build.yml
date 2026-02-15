@@ -1,4 +1,4 @@
-name: Build H5 Game (FIXED)
+name: Build H5 Game (WORKING FIX)
 
 on:
   workflow_dispatch:
@@ -14,23 +14,25 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Neutralinojs
+        shell: cmd
         run: npm install -g @neutralinojs/neu
 
-      - name: Create Neutralino wrapper
+      - name: Create wrapper
+        shell: cmd
         run: neu create wrapper
 
-      - name: Auto collect files
+      - name: Copy game files
+        shell: cmd
         run: |
-          robocopy . wrapper\resources ^
-            /E ^
-            /XD wrapper .git .github node_modules ^
-            /R:0 /W:0
+          robocopy . wrapper\resources /E /XD wrapper .git .github node_modules
+          exit 0
 
-      - name: Rename entry file for Neutralino
-        run: |
-          copy wrapper\resources\main.html wrapper\resources\index.html
+      - name: Create index.html
+        shell: cmd
+        run: copy wrapper\resources\main.html wrapper\resources\index.html
 
       - name: Build EXE
+        shell: cmd
         run: |
           cd wrapper
           neu build --release
@@ -48,6 +50,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Prepare web dir
         run: |
           mkdir web
@@ -58,8 +71,6 @@ jobs:
             --exclude="wrapper" \
             ./ web/
 
-      - name: Create index.html alias
-        run: |
           cp web/main.html web/index.html
 
       - name: Install Capacitor
@@ -73,17 +84,19 @@ jobs:
           npx cap init Game com.example.game --web-dir web
 
       - name: Add Android
-        run: |
-          npx cap add android
+        run: npx cap add android
 
-      - name: Sync Capacitor
+      - name: Force Java 17 compatibility
         run: |
-          npx cap sync android
+          echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
+
+      - name: Sync
+        run: npx cap sync android
 
       - name: Build APK
         run: |
           cd android
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
