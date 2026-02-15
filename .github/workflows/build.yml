@@ -43,82 +43,81 @@ jobs:
           path: wrapper/dist/windows/*.exe
 
 
+  build-apk:
+    runs-on: ubuntu-latest
 
-    build-apk:
-      runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      steps:
-        - uses: actions/checkout@v4
+      # ✅ 强制安装 Java 17
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
 
-        # ✅ 强制安装 Java 17
-        - name: Setup Java 17
-          uses: actions/setup-java@v4
-          with:
-            distribution: temurin
-            java-version: 17
+      # ✅ 确认 Java 版本
+      - name: Verify Java
+        run: |
+          java -version
+          echo "JAVA_HOME=$JAVA_HOME"
 
-        # ✅ 确认 Java 版本
-        - name: Verify Java
-          run: |
-            java -version
-            echo "JAVA_HOME=$JAVA_HOME"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-        - name: Setup Node
-          uses: actions/setup-node@v4
-          with:
-            node-version: 20
+      # ✅ 准备 web 文件
+      - name: Prepare web dir
+        run: |
+          mkdir web
+          rsync -av \
+            --exclude=".git" \
+            --exclude=".github" \
+            --exclude="node_modules" \
+            --exclude="android" \
+            ./ web/
 
-        # ✅ 准备 web 文件
-        - name: Prepare web dir
-          run: |
-            mkdir web
-              rsync -av \
-              --exclude=".git" \
-              --exclude=".github" \
-              --exclude="node_modules" \
-              --exclude="android" \
-              ./ web/
+          cp web/main.html web/index.html
 
-            cp web/main.html web/index.html
+      # ✅ 安装 Capacitor
+      - name: Install Capacitor
+        run: |
+          npm install @capacitor/core
+          npm install @capacitor/cli
+          npm install @capacitor/android
 
-        # ✅ 安装 Capacitor
-        - name: Install Capacitor
-          run: |
-            npm install @capacitor/core
-            npm install @capacitor/cli
-            npm install @capacitor/android
+      # ✅ 初始化
+      - name: Init Capacitor
+        run: |
+          npx cap init Game com.example.game --web-dir web
 
-        # ✅ 初始化
-        - name: Init Capacitor
-          run: |
-            npx cap init Game com.example.game --web-dir web
+      - name: Add Android
+        run: |
+          npx cap add android
 
-        - name: Add Android
-          run: |
-            npx cap add android
+      # ✅ 强制 Gradle 使用 Java 17（关键修复）
+      - name: Fix Java compatibility
+        run: |
+          echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
 
-        # ✅ 强制 Gradle 使用 Java 17（关键修复）
-        - name: Fix Java compatibility
-          run: |
-            echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
+          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' android/**/*.gradle || true
+          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' android/**/*.gradle || true
 
-            sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' android/**/*.gradle || true
-            sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' android/**/*.gradle || true
+      - name: Sync
+        run: |
+          npx cap sync android
 
-        - name: Sync
-          run: |
-            npx cap sync android
+      # ✅ 构建 APK
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            -Dorg.gradle.java.home=$JAVA_HOME \
+            --no-daemon
 
-        # ✅ 构建 APK
-        - name: Build APK
-          run: |
-            cd android
-            chmod +x gradlew
-            ./gradlew assembleRelease \
-              -Dorg.gradle.java.home=$JAVA_HOME \
-              --no-daemon
-
-        - uses: actions/upload-artifact@v4
-          with:
-            name: game-apk
-            path: android/app/build/outputs/apk/release/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game-apk
+          path: android/app/build/outputs/apk/release/*.apk
