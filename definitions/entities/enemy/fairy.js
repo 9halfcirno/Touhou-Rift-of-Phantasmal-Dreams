@@ -6,6 +6,6 @@ export default {
 	components: {
 		"th:hp": 10,
 		"th:speed": 20,
-		"th:max_life_time": 200
+		// "th:max_life_time": 200
 	}
 }

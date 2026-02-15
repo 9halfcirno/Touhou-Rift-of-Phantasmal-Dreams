@@ -99,13 +99,14 @@ render()
 TH.system.startTick()
 
 TH.KeyboardInput.onKey("x", () => {
-	// for (let i = 0; i < 100; i++) {
+	for (let i = 0; i < 10; i++) {
 	let e = new TH.Entity("th:entity=bullet/ball", {
-		position: entity.position
+		position: entity.position,
+		rotation: new TH.Vector3(i, i, i)
 	});
 	debug.main.addObject(e);
 	// e._disposeThree();
-	// }
+	}
 });
 
 TH.KeyboardInput.onKey("z", () => {

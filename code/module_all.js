@@ -1,7 +1,7 @@
 export { Ticker } from "./ticker.js"
 export { GameScene } from "./game_scene.js"
 export { GameMap } from "./game_map.js"
-export { Position } from "./position.js"
+export { Position, Vector2, Vector3 } from "./position.js"
 export { Entity } from "./game_entity.js"
 export { GameSplicingMap } from "./game_map_splicingMap.js"
 export { TextureManager } from "./manager_texture.js"

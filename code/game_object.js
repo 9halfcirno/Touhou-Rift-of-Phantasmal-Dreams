@@ -35,7 +35,7 @@ class GameObject {
 		this._orginPos = new Position(...this.position); // 用于Threee缓动的坐标
 		// x => yaw (水平旋转)
 		// y => pitch (垂直旋转)
-		this.rotation = new Vector2(0, 0); // 2D对象只需要两个旋转值
+		this.rotation = obj.rotation?.clone?.() || new Vector2(0, 0); // 2D对象只需要两个旋转值
 		this.uuid = util.uuid(); // 获取uuid
 		this.updateThreeData(1);
 		this._resizeMeshByTexture();

@@ -15,7 +15,7 @@ class BulletMovementSystem extends System {
         for (const entity of entities) {
             if (entity.hasComponent("th:family")) {
                 if (entity.getComponent("th:family").value === "bullet") {
-                    entity.step(entity.rotation)                    
+                    entity.step(entity.rotation)
                 }
             }
         }
