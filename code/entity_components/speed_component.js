@@ -2,8 +2,8 @@ import { Component } from "./component.js";
 
 class SpeedComponent extends Component {
     constructor(data) {
-        super(data);
-        this.speed = data.speed;
+        super("th:speed", data);
+        this.speed = data || 0;
     }
 
     get value() {
@@ -14,5 +14,6 @@ class SpeedComponent extends Component {
         this.speed = v;
     }
 }
+Component.registerComponent("th:speed", SpeedComponent);
 
 export { SpeedComponent };

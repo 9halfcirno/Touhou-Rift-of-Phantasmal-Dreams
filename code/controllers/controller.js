@@ -1,10 +1,6 @@
 class Controller {
-	constructor(camera) {
-		this.camera = camera || new THREE.PerspectiveCamera(
-			60,
-			GAME_CONFIG.WIDTH / GAME_CONFIG.HEIGHT,
-			0.1,
-			1000);
+	constructor(obj) {
+		this.target = obj;
 	}
 	
 	update() {

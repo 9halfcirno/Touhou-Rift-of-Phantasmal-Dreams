@@ -33,8 +33,9 @@ class GameObject {
 		};
 		this.position = obj.position?.clone?.() || new Position();
 		this._orginPos = new Position(...this.position); // 用于Threee缓动的坐标
-		this.rotation = obj.rotation?.clone?.() || new Vector2();
-		this.rotation.x = obj.rotation;
+		// x => yaw (水平旋转)
+		// y => pitch (垂直旋转)
+		this.rotation = new Vector2(0, 0); // 2D对象只需要两个旋转值
 		this.uuid = util.uuid(); // 获取uuid
 		this.updateThreeData(1);
 		this._resizeMeshByTexture();
@@ -45,6 +46,8 @@ class GameObject {
 		this.three.mesh.receiveShadow = true;
 		this.inMap = null;                                            
 		// GameObject.objectsMap.set(this.uuid, this); // 把自己扔对象池
+
+		this.texture = this.three.material.map; // 保存引用		
 	}
 	/**
 	 * 设置GmaeObject的游戏坐标，并自动处理THREE坐标
@@ -54,6 +57,7 @@ class GameObject {
 	 * @returns {GameObject} 返回this
 	 */
 	setPosition(x, y, z) {
+		if (x === 0 && y === 0 && z === 0) return this;
 		this._orginPos.copy(this.position);
 		this.position.set(x, y, z);
 		this.updateThreeData();
@@ -67,13 +71,15 @@ class GameObject {
 	updateThreeData(p = 1) {
 		p = p > 1 ? 1 : p;
 		let mesh = this.three.mesh;
-		mesh.rotation.set(...this.rotation, 0)
+		// 废用 mesh.rotation.set(...this.rotation, 0)
 
 		// const toPos = this.position.toTHREE().toArray();
 		// const orgPos = this._orginPos.toTHREE().toArray();
 
 		// mesh.position.set(...(orgPos.map((pos, i) => pos + (toPos[i] - pos) * p)))
 		mesh.position.set(...this.tweenPosition(p).toTHREE())
+		mesh.rotation.set(Config["object2d_tilt"], 0, 0); // 2D对象只需要倾斜角度
+		// 精灵图不用随着旋转
 		this._fixThreePosition();
 	}
 
@@ -118,7 +124,7 @@ class GameObject {
 		this.three.material.dispose();
 		this.three.geometry.dispose();
 		this.three.destory = true;
-		this.inMap.removeObject(this);
+		this.inMap?.removeObject?.(this);
 	}
 }
 

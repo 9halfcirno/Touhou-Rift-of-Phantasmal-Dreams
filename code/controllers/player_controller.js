@@ -15,12 +15,14 @@ class PlayerController extends Controller {
 		if (typeof entity === "string") {
 			entity = Entity.getEntity(entity);
 		}
-		super(camera);
-		this.target = entity;
+		super(entity)
+		this.camera = camera;
 		//if (camera) this.camera.target = this.target
 	}
 
 	update() {
+		if (!this.target) return;
+		if (!this.target.isAlive) return;
 		let w = Key.key("w").down;
 		let a = Key.key("a").down;
 		let s = Key.key("s").down;
@@ -28,13 +30,14 @@ class PlayerController extends Controller {
 		let down = Key.key("Shift").down;
 		let fly = Key.key(" ").down;
 		
-		let speed = this.target.atts?.get?.("th:speed") || 0.5;
-
+		let speed = this.target.getComponentValue("th:speed") || 0.5;
+		
 		this.target.moveBy((d - a) * speed, (fly - down) * speed, (w - s) * speed)
 	}
 
 	onRender(opts = { progress: 1 }) {
 		this.update();
+		if (!this.target.isAlive) return;
 		if (this.camera) {
 			const pos = this.target.tweenPosition(opts.progress).toTHREE().toArray();
 

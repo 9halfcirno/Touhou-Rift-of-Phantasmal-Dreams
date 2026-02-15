@@ -8,8 +8,7 @@ class EntityController extends Controller {
 	 */
 	constructor(object) {
 		if (!(object instanceof GameObject)) throw new Error("EntityController仅接收GameObject实例");
-		super();
-		this.target = object;
+		super(object);
 	}
 
 	update() {

@@ -5,14 +5,14 @@ class System {
         this.requireComponents = requires;
         this.priority = opts.priority || 0;
 
-        this.registerSystem(this);
+        System.registerSystem(this);
     }
 
     static registerSystem(system) {
-        if (this.allSystems.has(system.name)) {
-            console.warn(`系统已存在，名称: ${system.name}`);
-            return;
-        }
+        // if (this.allSystems.has(system.name)) {
+        //     console.warn(`系统已存在，名称: ${system.name}`);
+        //     return;
+        // }
 
         System.allSystems.push(system);
         // 按优先级排序，数字越小优先级越高

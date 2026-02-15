@@ -3,8 +3,11 @@ export default {
 	texture: "th:texture=entity/reimu",
 	module: "th:model=game_2d",
 
-	att: {
+	components: {
 		"th:speed": Math.E / 16,
-		"th:hp": 5,
+		"th:hp": {
+			hp: 5,
+			maxHp: 9,
+		},
 	}
 }

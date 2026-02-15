@@ -13,7 +13,32 @@ const Mou = {
         y: 0
     },
     x: 0,
-    y: 0
+    y: 0,
+    _wheelCallbacks: [],
+    _buttonCallbacks: new Map(),
+    onWheel(cb) {
+        this._wheelCallbacks.push(cb);
+    },
+    offWheel(cb) {
+        const index = this._wheelCallbacks.indexOf(cb);
+        if (index !== -1) {
+            this._wheelCallbacks.splice(index, 1);
+        }
+    },
+    onButton(button, cb) {
+        if (!this._buttonCallbacks.has(button)) {
+            this._buttonCallbacks.set(button, []);
+        }
+        this._buttonCallbacks.get(button).push(cb);
+    },
+    offButton(button, cb) {
+        if (!this._buttonCallbacks.has(button)) return;
+        const arr = this._buttonCallbacks.get(button);
+        const index = arr.indexOf(cb);
+        if (index !== -1) {
+            arr.splice(index, 1);
+        }
+    },
 }
 
 window.addEventListener("mousedown", event => {
@@ -48,6 +73,9 @@ window.addEventListener("wheel", event => {
     Mou.wheel.x = event.deltaX;
     Mou.wheel.y = event.deltaY;
     Mou.wheel.z = event.deltaZ; 
+    Mou._wheelCallbacks.forEach(cb => {
+        cb(Mou.wheel);
+    });
 })
 
 window.addEventListener("mousemove", event => {

@@ -1,10 +1,15 @@
-import { Component } from "./component";
+import { Component } from "./component.js";
 
 class HealthyComponent extends Component {
     constructor(data) {
-        super(data);
-        this.maxHp = data.maxHp || Infinity;
-        this.hp = data.hp || data.maxHp;
+        super("th:hp", data);
+        if (typeof data === "object") {this.maxHp = data.maxHp || Infinity;
+            this.hp = data.hp || data.maxHp;
+        } else {
+            this.hp = data;
+            this.maxHp = Infinity;
+        }
+        
     }
 
     get value() {
@@ -16,5 +21,6 @@ class HealthyComponent extends Component {
         this.hp = v;
     }
 }
+Component.registerComponent("th:hp", HealthyComponent);
 
 export { HealthyComponent };

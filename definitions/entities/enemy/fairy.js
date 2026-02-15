@@ -3,8 +3,9 @@ export default {
 	texture: "th:texture=entity/fairy",
 	module: "th:model=game_2d",
 
-	att: {
-		speed: 0.3,
-		hp: 5,
+	components: {
+		"th:hp": 10,
+		"th:speed": 20,
+		"th:max_life_time": 200
 	}
 }
