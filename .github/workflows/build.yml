@@ -1,0 +1,84 @@
+name: Build H5 Game (AUTO COLLECT)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  build-exe:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Neutralinojs
+        run: npm install -g @neutralinojs/neu
+
+      - name: Create wrapper
+        run: neu create wrapper --template minimal
+
+      - name: Auto collect game files
+        run: |
+          robocopy . wrapper\resources ^
+            /E ^
+            /XD wrapper .git .github node_modules ^
+            /XF package.json package-lock.json ^
+            /R:0 /W:0
+
+      - name: Set entry to main.html
+        run: |
+          powershell -Command ^
+          "(Get-Content wrapper\\neutralino.config.json) -replace 'index.html','main.html' | Set-Content wrapper\\neutralino.config.json"
+
+      - name: Build EXE
+        run: |
+          cd wrapper
+          neu build --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game-exe
+          path: wrapper/dist/windows/*.exe
+
+
+
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare web dir
+        run: |
+          mkdir web
+          rsync -av \
+            --exclude=".git" \
+            --exclude=".github" \
+            --exclude="node_modules" \
+            --exclude="wrapper" \
+            ./ web/
+
+      - name: Install Capacitor
+        run: |
+          npm install @capacitor/core
+          npm install @capacitor/cli
+          npm install @capacitor/android
+
+      - name: Init Capacitor
+        run: |
+          npx cap init Game com.example.game --web-dir web
+
+      - name: Add Android
+        run: npx cap add android
+
+      - name: Build APK
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game-apk
+          path: android/app/build/outputs/apk/release/*.apk
