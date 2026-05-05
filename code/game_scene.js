@@ -136,7 +136,7 @@ class GameScene {
 		this.useCamera = this.debug.camera;
 		Key.onKey("Enter", () => {
 			let orPos = this.useCamera.position;
-			this.useCamera = (this.useCamera === this.debug.camera ? this.three.camera : this.debug.camera)
+			this.useCamera = (this.useCamera === this.debug.camera ? this.three.camera : this.debug.camera);
 		})
 		window.addEventListener('resize', () => {
 			const maxWidth = window.innerWidth;
