@@ -1,0 +1,9 @@
+{
+	"model_version": "1.0",
+	"model_type": "th_model",
+	"data": [
+		{
+			"geometry": "cube"
+		}
+	]
+}

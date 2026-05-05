@@ -1,0 +1,13 @@
+{
+	"thid": "th:entity=character/reimu",
+	"texture": "th:texture=entity/reimu",
+	"module": "th:model=game_2d",
+
+	"components": {
+		"th:speed": 0.3,
+		"th:hp": {
+			"hp": 5,
+			"maxHp": 9
+		}
+	}
+}
