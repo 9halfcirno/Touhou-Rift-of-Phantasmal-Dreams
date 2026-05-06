@@ -25,6 +25,30 @@ const Mou = {
             this._wheelCallbacks.splice(index, 1);
         }
     },
+    onLeftDown(cb) {
+        this.onButton('leftDown', cb);
+    },
+    offLeftDown(cb) {
+        this.offButton('leftDown', cb);
+    },
+    onLeftUp(cb) {
+        this.onButton('leftUp', cb);
+    },
+    offLeftUp(cb) {
+        this.offButton('leftUp', cb);
+    },
+    onRightDown(cb) {
+        this.onButton('rightDown', cb);
+    },
+    offRightDown(cb) {
+        this.offButton('rightDown', cb);
+    },
+    onRightUp(cb) {
+        this.onButton('rightUp', cb);
+    },
+    offRightUp(cb) {
+        this.offButton('rightUp', cb);
+    },
     onButton(button, cb) {
         if (!this._buttonCallbacks.has(button)) {
             this._buttonCallbacks.set(button, []);
@@ -45,12 +69,14 @@ window.addEventListener("mousedown", event => {
     switch (event.button) {
         case 0:
             Mou.left = true;
+            Mou._buttonCallbacks.get('leftDown')?.forEach(cb => cb());
             break;
         case 1:
             Mou.middle = true;
             break;
         case 2:
             Mou.right = true;
+            Mou._buttonCallbacks.get('rightDown')?.forEach(cb => cb());
             break;
     }
 })
@@ -59,12 +85,14 @@ window.addEventListener("mouseup", event => {
     switch (event.button) {
         case 0:
             Mou.left = false;
+            Mou._buttonCallbacks.get('leftUp')?.forEach(cb => cb());
             break;
         case 1:
             Mou.middle = false;
             break;
         case 2:
             Mou.right = false;
+            Mou._buttonCallbacks.get('rightUp')?.forEach(cb => cb());
             break;
     }
 })

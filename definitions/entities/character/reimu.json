@@ -8,6 +8,10 @@
 		"th:hp": {
 			"hp": 5,
 			"maxHp": 9
+		},
+		"th:hitbox": {
+			"shape": "circle",
+			"radius": 0.3
 		}
 	}
 }

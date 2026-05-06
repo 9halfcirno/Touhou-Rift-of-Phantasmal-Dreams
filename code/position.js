@@ -42,27 +42,6 @@ export class Position extends Vector3 {
 	// 	return this;
 	// }
 
-	/*		// 转为THREE坐标（考虑倾斜角和z轴方向）
-			toTHREE() {
-				const a = Config["y_tilt"];
-				// 游戏y轴投影到THREE的y和z轴
-				// THREE的z轴方向与游戏相反，取反
-				return new THREE.Vector3(
-					this.x,
-					this.y * Math.cos(a),
-					this.y * Math.sin(a) - this.z
-				);
-			}
-		
-			static fromTHREE(v) {
-				const a = Setting.get("y_tilt");
-				// 反向投影并转换为游戏坐标系
-				return new Position(
-					v.x,
-					v.y / Math.cos(a),
-					v.y * Math.tan(a) - v.z
-				);
-			}*/
 	// 游戏坐标到THREE坐标
 	toTHREE() {
 		const a = Config["y_tilt"];

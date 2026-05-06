@@ -77,6 +77,8 @@ window.addEventListener("keydown", event => {
 
 	KeyboardInput._triggerKey(key);
 	KeyboardInput._triggerKey(KeyboardInput.ALL);
+
+	event.preventDefault()
 });
 
 window.addEventListener("keyup", event => {
@@ -88,6 +90,7 @@ window.addEventListener("keyup", event => {
 
 	// KeyboardInput._triggerKey(key);
 	// KeyboardInput._triggerKey(KeyboardInput.ALL);
+	event.preventDefault()
 });
 
 // ✅ 关键修复：窗口失焦 / 页面切换

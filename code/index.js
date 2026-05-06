@@ -44,7 +44,7 @@ globalThis.scene = new TH.GameScene({
 globalThis.debug = {};
 
 scene.render()
-scene.$debug()
+// scene.$debug()
 document.getElementById("game").append(scene.domElement)
 
 document.addEventListener('contextmenu', function (event) {
@@ -65,7 +65,7 @@ TH.system.update = () => {
 </br>renderDelta: ${THSystem.renderDelta.toFixed(3)}s
 `;
 	
-	if (TH.KeyboardInput.key("x").down) {
+	if (TH.MouseInput.left) {
 		// for (let i = 0; i < 10; i++) {
 		let j = Math.random() * 2 - 1;
 		let e = new TH.Entity("th:entity=bullet/ball", {
@@ -80,9 +80,6 @@ TH.system.update = () => {
 
 function render() {
 	ctrl.onRender({
-		progress: TH.system.tickP
-	});
-	e2controller.onRender({
 		progress: TH.system.tickP
 	});
 	scene.render({
@@ -110,17 +107,11 @@ let e2 = new TH.Entity("th:entity=enemy/fairy")
 debug.main.addObject(entity)
 debug.main.addObject(e2)
 
-let e2controller = new TH.PlayerController(e2.uuid)
-
 let ctrl = new TH.PlayerController(entity.uuid, scene.three.camera)
 
 render()
 
 TH.system.startTick()
-
-TH.KeyboardInput.onKey("x", () => {
-
-});
 
 TH.KeyboardInput.onKey("z", () => {
 	entity.getComponent("th:hp").value -= 1;
@@ -130,3 +121,7 @@ TH.MouseInput.onWheel((wheel) => {
 	TH.Config["camera_distance"] += wheel.y * 0.01;
 })
 
+TH.KeyboardInput.onKey("Tab", (tab) => {
+	if (tab.repeat) return;
+	ctrl.target = ctrl.target === e2 ? entity : e2;
+})
