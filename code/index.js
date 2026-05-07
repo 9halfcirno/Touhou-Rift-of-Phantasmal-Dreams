@@ -2,6 +2,7 @@ import * as TH from "./module_all.js"
 import {
 	default as Stats
 } from "../libs/three.stats.js";
+globalThis.TH = TH;
 
 let statsTps = new Stats();
 statsTps.setMode(0);
@@ -44,7 +45,7 @@ globalThis.scene = new TH.GameScene({
 globalThis.debug = {};
 
 scene.render()
-// scene.$debug()
+scene.$debug()
 document.getElementById("game").append(scene.domElement)
 
 document.addEventListener('contextmenu', function (event) {
@@ -63,19 +64,20 @@ TH.system.update = () => {
 </br>frame: ${THSystem.frame}
 </br>tickDelta: ${THSystem.tickDelta.toFixed(3)}s
 </br>renderDelta: ${THSystem.renderDelta.toFixed(3)}s
+</br>mouse screen pos:  ${TH.MouseInput.x}, ${TH.MouseInput.y}
 `;
 	
-	if (TH.MouseInput.left) {
-		// for (let i = 0; i < 10; i++) {
-		let j = Math.random() * 2 - 1;
-		let e = new TH.Entity("th:entity=bullet/ball", {
-			position: entity.position,
-			rotation: new TH.Vector3(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2)
-		});
-		debug.main.addObject(e);
-		// e._disposeThree();
-		// }
-	}
+	// if (TH.MouseInput.left) {
+	// 	// for (let i = 0; i < 10; i++) {
+	// 	let j = Math.random() * 2 - 1;
+	// 	let e = new TH.Entity("th:entity=bullet/ball", {
+	// 		position: entity.position,
+	// 		rotation: new TH.Vector3(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2)
+	// 	});
+	// 	debug.main.addObject(e);
+	// 	// e._disposeThree();
+	// 	// }
+	// }
 }
 
 function render() {
@@ -91,6 +93,7 @@ function render() {
 
 debug.main = new TH.GameSplicingMap("th:map=main");
 await debug.main._createMap()
+debug.main.$debug()
 scene.addGameMap(debug.main)
 scene.switchToGameMap("th:map=main")
 
@@ -114,6 +117,7 @@ render()
 TH.system.startTick()
 
 TH.KeyboardInput.onKey("z", () => {
+	console.log("z pressed")
 	entity.getComponent("th:hp").value -= 1;
 })
 
@@ -123,5 +127,57 @@ TH.MouseInput.onWheel((wheel) => {
 
 TH.KeyboardInput.onKey("Tab", (tab) => {
 	if (tab.repeat) return;
-	ctrl.target = ctrl.target === e2 ? entity : e2;
+	ctrl.setTarget(ctrl.target === e2 ? entity : e2);
 })
+
+TH.MouseInput.onRightDown(() => {
+	console.log(`鼠标canvas位置: ${TH.MouseInput.x}, ${TH.MouseInput.y}\n鼠标游戏位置:`, getPointOnRotatedPlane(TH.MouseInput, scene.three.camera, new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)));
+	entity.setPosition(...getPointOnRotatedPlane(TH.MouseInput, scene.three.camera, new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)));
+})
+
+const _raycaster = new THREE.Raycaster();
+const _mouse = new THREE.Vector2();
+const _intersectionPoint = new THREE.Vector3();
+
+function getPointOnRotatedPlane(MouseInput, camera, planeMeshOrMathPlane) {
+	// 获取 canvas 相对于视口的位置
+	const rect = scene.domElement.getBoundingClientRect();
+
+	// 精确计算归一化坐标
+	_mouse.x = ((MouseInput.x - rect.left) / rect.width) * 2 - 1;
+	_mouse.y = -((MouseInput.y - rect.top) / rect.height) * 2 + 1;
+
+	_raycaster.setFromCamera(_mouse, scene.currentCamera);
+
+	if (planeMeshOrMathPlane.isMesh) {
+		// 如果传入的是 Mesh
+		const intersects = _raycaster.intersectObject(planeMeshOrMathPlane);
+		return intersects.length > 0 ? intersects[0].point : null;
+	} else {
+		// 如果传入的是 THREE.Plane
+		let pos = _raycaster.ray.intersectPlane(planeMeshOrMathPlane, _intersectionPoint);
+		if (pos) {
+			let thPos = new TH.Position();
+			thPos.x = pos.x;
+			thPos.y = pos.y;
+			thPos.z = -pos.z;
+			return thPos;//new THREE.Vector3(pos.x, pos.y, -pos.z)//pos//new TH.Position(pos.x, pos.z, pos.y);
+		} else {
+			return null;
+		}
+	}
+}
+
+// // 调试球
+const debugSphere = new THREE.Mesh(
+	new THREE.SphereGeometry(0.1),
+	new THREE.MeshBasicMaterial({ color: 0xff0000 })
+);
+scene.three.scene.add(debugSphere);
+
+window.addEventListener('mousemove', () => {
+	const point = getPointOnRotatedPlane(TH.MouseInput, scene.three.camera, new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
+	if (point) {
+		debugSphere.position.set(point.x, point.y, -point.z); // 点击哪里，小红球就跳到哪里
+	}
+});

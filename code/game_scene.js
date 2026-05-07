@@ -58,7 +58,7 @@ class GameScene {
 		this.gameMaps = new Map();
 		this.gameMapNow = null;
 
-		this.useCamera = this.three.camera;
+		this.currentCamera = this.three.camera;
 
 		if (Config["enable_shadows"]) {
 			this.setupShadows();
@@ -118,7 +118,7 @@ class GameScene {
 		this.debug.grid = new THREE.GridHelper(16, 16);
 		this.three.scene.add(this.debug.grid);
 		this.debug.axes = new THREE.AxesHelper(10);
-		this.three.scene.add(this.debug.axes);
+		// this.three.scene.add(this.debug.axes);
 
 		this.debug.camera = new THREE.PerspectiveCamera(
 			60,
@@ -127,16 +127,16 @@ class GameScene {
 			1000);
 		this.debug.controls = new OrbitControls(this.debug.camera, this.domElement);
 
-		let camHelper = new THREE.CameraHelper(this.three.camera);
+		this.debug.camHelper = new THREE.CameraHelper(this.three.camera);
 		console.log(this.debug.controls);
 
-		this.three.scene.add(camHelper);
+		this.three.scene.add(this.debug.camHelper);
 
 		this.debug.camera.position.set(2, 2, 2)
-		this.useCamera = this.debug.camera;
+		// this.currentCamera = this.debug.camera;
 		Key.onKey("Enter", () => {
-			let orPos = this.useCamera.position;
-			this.useCamera = (this.useCamera === this.debug.camera ? this.three.camera : this.debug.camera);
+			let orPos = this.currentCamera.position;
+			this.currentCamera = (this.currentCamera === this.debug.camera ? this.three.camera : this.debug.camera);
 		})
 		window.addEventListener('resize', () => {
 			const maxWidth = window.innerWidth;
@@ -174,8 +174,9 @@ class GameScene {
 		};
 
 		this._updateLightPosition();
-		this.debug?.controls?.update?.()
-		this.three.renderer.render(this.three.scene, this.useCamera)
+		this.debug?.controls?.update?.();
+		this.debug?.camHelper?.update?.();
+		this.three.renderer.render(this.three.scene, this.currentCamera)
 	}
 
 	update() {

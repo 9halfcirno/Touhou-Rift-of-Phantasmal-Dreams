@@ -2,6 +2,10 @@ class Controller {
 	constructor(obj) {
 		this.target = obj;
 	}
+
+	setTarget(obj) {
+		this.target = obj;
+	}
 	
 	update() {
 		throw new Error("Controller子类必须实现该方法")

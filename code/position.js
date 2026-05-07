@@ -47,25 +47,29 @@ export class Position extends Vector3 {
 		const a = Config["y_tilt"];
 		return new THREE.Vector3(
 			// 算了编不动了，我也不清楚怎么转换的，试着试着就好了
+			// 好了，我这下知道怎么写了，主要是因为地图整体倾斜了，所以y轴的分量要分成垂直和水平两部分，水平部分会影响z轴的值
 			this.x, // 游戏X -> THREE.X（水平）
-			this.z + this.y * Math.sin(a), // 游戏Y的垂直分量 -> THREE.Y
-			this.y + Math.cos(a) * this.y * 0.5 // * Math.sin(a) + this.z // 游戏Y的深度分量 + 游戏Z -> THREE.Z
+			// 由于地图整个转了90度，所以three的z轴是游戏的y轴
+			this.z + this.y * Math.cos(a), // 由于地图倾斜，游戏Y的垂直分量会增加THREE的Z值
+			this.y * Math.sin(a) // 游戏Y的水平分量会增加THREE的Y值
 		);
 	}
 
 	static fromTHREE(v) {
-		const tiltAngle = Config["y_tilt"] || Math.PI / 4;
+		const a = Config["y_tilt"] || Math.PI / 4;
 
-		// 这个转换比较困难，因为一个THREE点可能对应多个游戏点
-		// 通常假设游戏Z已知或为0，或者需要额外信息
+		// 1. 先从 Three.z 还原出游戏高度 y
+		// 因为 toTHREE 中：Three.z = Game.y * sin(a)
+		const gameY = v.z / Math.sin(a);
 
-		// 简单版本：假设游戏Z = 0
-		const gameY = v.y / Math.cos(tiltAngle);
+		// 2. 游戏 x 依然直接对应
+		const gameX = v.x;
 
-		return new Position(
-			v.x, // X直接对应
-			gameY, // 反算Y
-			v.z - gameY * Math.tan(tiltAngle) // 从总深度中减去Y的深度分量
-		);
+		// 3. 从 Three.y 中还原出游戏深度 z
+		// 因为 toTHREE 中：Three.y = Game.z + Game.y * cos(a)
+		// 所以 Game.z = Three.y - Game.y * cos(a)
+		const gameZ = v.y - gameY * Math.cos(a);
+
+		return new Position(gameX, gameY, gameZ);
 	}
 }

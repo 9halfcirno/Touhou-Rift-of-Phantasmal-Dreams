@@ -113,6 +113,9 @@ window.addEventListener("mousemove", event => {
 
     Mou._lastPosition.x = x;
     Mou._lastPosition.y = y;
+
+    Mou.x = x;
+    Mou.y = y;
 })
 
 

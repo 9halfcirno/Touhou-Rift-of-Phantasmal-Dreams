@@ -20,6 +20,11 @@ class GameMap {
 
 		this.objects = new Map();
 	}
+
+	$debug() {
+		let axe = new THREE.AxesHelper(5);
+		this.three.group.add(axe);
+	}
 	
 	addObject(obj) {
 		// 拒绝非GameObject实例
