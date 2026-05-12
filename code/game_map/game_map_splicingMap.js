@@ -11,6 +11,8 @@ class GameSplicingMap extends GameMap {
 		let floor = new THREE.Group();
 		floor.name = `GameMap_${id}_floor`
 		this.three.floor = floor;
+		this.three.ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
+
 		this.three.group.add(floor)
 	}
 

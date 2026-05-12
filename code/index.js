@@ -18,7 +18,9 @@ const debugdiv = document.getElementById("debug")
 
 globalThis.GAME_CONFIG = { // 总配置
 	RUN_PATH: document.location.href.slice(0, document.location.href.lastIndexOf("/")),
-	STAGE_ASPECT: 16 / 9,
+	CANVAS_ID: "game-canvas",
+	STAGE_ASPECT: window.innerWidth / window.innerHeight,
+	// STAGE_ASPECT: 16 / 9,
 	STAGE_WIDTH: Math.min(window.innerWidth),
 	STAGE_HEIGHT: Math.min(window.innerWidth * (9 / 16), window.innerHeight)
 }
@@ -40,12 +42,16 @@ console.log("游戏配置:", GAME_CONFIG)
 globalThis.scene = new TH.GameScene({
 	width: GAME_CONFIG.STAGE_WIDTH,
 	height: GAME_CONFIG.STAGE_HEIGHT,
+	canvasId: GAME_CONFIG.CANVAS_ID
 })
 
 globalThis.debug = {};
 
 scene.render()
 scene.$debug()
+
+TH.MouseInput.bind(scene.domElement)
+
 document.getElementById("game").append(scene.domElement)
 
 document.addEventListener('contextmenu', function (event) {
@@ -58,6 +64,17 @@ TH.system.update = () => {
 	ctrl.update();
 	statsTps.update();
 	TH.System.updateAll();
+	if (TH.MouseInput.left) {
+		let mousePos = TH.MouseInput.inMapPosition(scene.currentCamera, debug.main.three.ground);
+		let j = Math.random() * 2 - 1;
+		let e = new TH.Entity("th:entity=bullet/ball", {
+			position: entity.position,
+			rotation: new TH.Vector2(1, 0)
+		});
+		// entity.moveTo(...mousePos)
+		e.faceTo(mousePos)
+		debug.main.addObject(e);
+	}
 	debugdiv.innerHTML = `player x: ${entity.position.x}, y: ${entity.position.y}, z: ${entity.position.z}
 </br>player hp: ${entity.getComponentValue("th:hp")}
 </br>entity count: ${TH.Entity.getAllEntities().length}
@@ -65,8 +82,9 @@ TH.system.update = () => {
 </br>tickDelta: ${THSystem.tickDelta.toFixed(3)}s
 </br>renderDelta: ${THSystem.renderDelta.toFixed(3)}s
 </br>mouse screen pos:  ${TH.MouseInput.x}, ${TH.MouseInput.y}
+</br>mouse map pos: ${TH.MouseInput.inMapPosition(scene.currentCamera, debug.main.three.ground).toArray().map(v => v.toFixed(4)).join()}
 `;
-	
+
 	// if (TH.MouseInput.left) {
 	// 	// for (let i = 0; i < 10; i++) {
 	// 	let j = Math.random() * 2 - 1;
@@ -129,44 +147,7 @@ TH.KeyboardInput.onKey("Tab", (tab) => {
 	if (tab.repeat) return;
 	ctrl.setTarget(ctrl.target === e2 ? entity : e2);
 })
-
-TH.MouseInput.onRightDown(() => {
-	console.log(`鼠标canvas位置: ${TH.MouseInput.x}, ${TH.MouseInput.y}\n鼠标游戏位置:`, getPointOnRotatedPlane(TH.MouseInput, scene.three.camera, new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)));
-	entity.setPosition(...getPointOnRotatedPlane(TH.MouseInput, scene.three.camera, new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)));
-})
-
-const _raycaster = new THREE.Raycaster();
-const _mouse = new THREE.Vector2();
-const _intersectionPoint = new THREE.Vector3();
-
-function getPointOnRotatedPlane(MouseInput, camera, planeMeshOrMathPlane) {
-	// 获取 canvas 相对于视口的位置
-	const rect = scene.domElement.getBoundingClientRect();
-
-	// 精确计算归一化坐标
-	_mouse.x = ((MouseInput.x - rect.left) / rect.width) * 2 - 1;
-	_mouse.y = -((MouseInput.y - rect.top) / rect.height) * 2 + 1;
-
-	_raycaster.setFromCamera(_mouse, scene.currentCamera);
-
-	if (planeMeshOrMathPlane.isMesh) {
-		// 如果传入的是 Mesh
-		const intersects = _raycaster.intersectObject(planeMeshOrMathPlane);
-		return intersects.length > 0 ? intersects[0].point : null;
-	} else {
-		// 如果传入的是 THREE.Plane
-		let pos = _raycaster.ray.intersectPlane(planeMeshOrMathPlane, _intersectionPoint);
-		if (pos) {
-			let thPos = new TH.Position();
-			thPos.x = pos.x;
-			thPos.y = pos.y;
-			thPos.z = -pos.z;
-			return thPos;//new THREE.Vector3(pos.x, pos.y, -pos.z)//pos//new TH.Position(pos.x, pos.z, pos.y);
-		} else {
-			return null;
-		}
-	}
-}
+console.log(scene)
 
 // // 调试球
 const debugSphere = new THREE.Mesh(
@@ -176,7 +157,7 @@ const debugSphere = new THREE.Mesh(
 scene.three.scene.add(debugSphere);
 
 window.addEventListener('mousemove', () => {
-	const point = getPointOnRotatedPlane(TH.MouseInput, scene.three.camera, new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
+	const point = TH.MouseInput.inMapPosition(scene.three.camera, debug.main.three.ground);
 	if (point) {
 		debugSphere.position.set(point.x, point.y, -point.z); // 点击哪里，小红球就跳到哪里
 	}

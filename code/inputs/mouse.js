@@ -1,4 +1,12 @@
+import { Position } from "../position.js";
+
 const Mou = {
+    canvas: null,
+    bind(canvas) {
+        if (typeof canvas === "string") canvas = document.getElementById(canvas)
+        this.canvas = canvas;
+        console.log(canvas)
+    },
     left: false,
     right: false,
     middle: false,
@@ -63,6 +71,45 @@ const Mou = {
             arr.splice(index, 1);
         }
     },
+
+    _raycaster: new THREE.Raycaster(),
+    _intersectionPoint : new THREE.Vector3(),
+    _mouse : new THREE.Vector2(),
+    inMapPosition(camera, plane) {
+        // 获取 canvas 相对于视口的位置
+        const rect = this.canvas?.getBoundingClientRect() || {
+            x: 0,
+            y: 0,
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
+
+        // 精确计算归一化坐标
+        this._mouse.x = (this.x / rect.width) * 2 - 1;
+        this._mouse.y = -(this.y / rect.height) * 2 + 1;
+
+        this._raycaster.setFromCamera(this._mouse, camera);
+
+        if (plane.isMesh) {
+            // 如果传入的是 Mesh
+            const intersects = this._raycaster.intersectObject(plane);
+            return intersects.length > 0 ? intersects[0].point : null;
+        } else {
+            // 如果传入的是 THREE.Plane
+            let pos = this._raycaster.ray.intersectPlane(plane, this._intersectionPoint);
+            if (pos) {
+                let thPos = new Position();
+                thPos.x = pos.x;
+                thPos.y = pos.y;
+                thPos.z = -pos.z;
+                return thPos;//new THREE.Vector3(pos.x, pos.y, -pos.z)//pos//new TH.Position(pos.x, pos.z, pos.y);
+            } else {
+                return new Position();
+                //return null;
+            }
+        }
+
+    }
 }
 
 window.addEventListener("mousedown", event => {
@@ -100,23 +147,44 @@ window.addEventListener("mouseup", event => {
 window.addEventListener("wheel", event => {
     Mou.wheel.x = event.deltaX;
     Mou.wheel.y = event.deltaY;
-    Mou.wheel.z = event.deltaZ; 
+    Mou.wheel.z = event.deltaZ;
     Mou._wheelCallbacks.forEach(cb => {
         cb(Mou.wheel);
     });
 })
 
+// window.addEventListener("mousemove", event => {
+//     let [x, y] = [event.clientX, event.clientY];
+//     Mou.movement.x = x - Mou._lastPosition.x;
+//     Mou.movement.y = y - Mou._lastPosition.y;
+
+//     Mou._lastPosition.x = x;
+//     Mou._lastPosition.y = y;
+
+//     Mou.x = x;
+//     Mou.y = y;
+// })
+
 window.addEventListener("mousemove", event => {
-    let [x, y] = [event.clientX, event.clientY];
+    // 1. 获取 Canvas 在页面上的实际位置和缩放后的尺寸
+    const rect = Mou.canvas?.getBoundingClientRect() || {
+        x: 0,
+        y: 0,
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
+
+    const x = event.clientX - rect.x;
+    const y = event.clientY - rect.y;
+    // 更新 movement (也需要按比例缩放，否则灵敏度会变)
     Mou.movement.x = x - Mou._lastPosition.x;
     Mou.movement.y = y - Mou._lastPosition.y;
 
+    // 更新状态
     Mou._lastPosition.x = x;
     Mou._lastPosition.y = y;
-
     Mou.x = x;
     Mou.y = y;
-})
+});
 
-
-export {Mou as MouseInput}
+export { Mou as MouseInput }

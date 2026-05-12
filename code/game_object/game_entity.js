@@ -10,7 +10,7 @@ import {
 import {
 	Config
 } from "../config.js";
-import { Vector3 } from "../position.js";
+import { Position, Vector2, Vector3 } from "../position.js";
 import * as THREE from "../../libs/three.module.js"
 import { Component } from "../entity_components/component.js";
 
@@ -31,7 +31,7 @@ class Entity extends GameObject {
 		super({
 			geometry: geo,
 			material: mat,
-			rotation: Config["object2d_tilt"],
+			rotation: new Vector2(), // Config["object2d_tilt"],
 			...params
 		})
 		this.thid = thid;
@@ -76,14 +76,62 @@ class Entity extends GameObject {
 
 	/**
 	 * 
-	 * @param {Vector2} dir 移动方向
+	 * @param {THREE.Vector3} dir 移动方向
 	 * @returns 
 	 */
-	step(dir) {
-		let speed = this.components.get("th:speed");
+	step() {
+		const speed = this.components.get("th:speed")?.value;
 		if (!speed) return;
-		this.moveBy(Math.cos(dir.x) * speed.value, speed.value * Math.sin(dir.y), Math.sin(dir.x) * speed.value);
-		return this;
+		const yaw = this.rotation.x;
+		const pitch = this.rotation.y;
+		
+		const cosPitch = Math.cos(pitch);
+
+		const vx = Math.sin(yaw) * cosPitch;
+		const vy = Math.sin(pitch);
+		const vz = Math.cos(yaw) * cosPitch;
+
+		this.moveBy(vx * speed, vy * speed, vz * speed)
+	}
+	// step(dir) {
+	// 	let norVec = dir.normalize();
+	// 	let speed = this.components.get("th:speed");
+	// 	if (!speed) return;
+	// 	speed = speed.value;
+	// 	this.moveBy(Math.cos(dir.x) * speed, speed * Math.sin(dir.y), Math.sin(dir.x) * speed);
+	// 	return this;
+	// }
+
+	faceTo(x, y, z) {
+		if (!x) return;
+		if (x instanceof Position) {
+			z = x.z;
+			y = x.y;
+			x = x.x;
+		} else if (x instanceof GameObject) {
+			z = x.position.z;
+			y = x.position.y;
+			x = x.position.x;
+		} else if (typeof x === "object") {
+			z = x.z;
+			y = x.y;
+			x = x.x;
+		}
+		// TODO
+		let dx = x - this.position.x
+		let dy = y - this.position.y
+		let dz = z - this.position.z
+
+		const hor = Math.sqrt(dx * dx + dz * dz);
+		// this.rotation.y = Math.atan(dy, hor);
+		// if (hor > 0.0001) {
+		// 	this.rotation.x = Math.atan2(dx, dz);
+		// }
+	
+		this.rotation.x = Math.atan2(dx, dz);
+		this.rotation.y = Math.atan2(dy, hor)
+
+		this.updateThreeData();
 	}
 
 	die(opts) {

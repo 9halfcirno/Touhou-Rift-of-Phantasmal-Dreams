@@ -12,7 +12,6 @@ import {
 	KeyboardInput as Key
 } from "./inputs/keyboard.js"
 
-
 class GameScene {
 	constructor(args = {}) {
 		/*=== three.js部分 ===*/
@@ -27,7 +26,7 @@ class GameScene {
 			renderer: new THREE.WebGLRenderer({
 				antialias: true
 			}),
-			// light: new THREE.DirectionalLight(0xFFFFFF, 1)
+			// light: new THREE.DirectionalLight(0xFFFFFF, 1)s
 		};
 		this.three.camera.name = "Camera_default";
 		this.three.renderer.setSize(args.width, args.height);
@@ -36,6 +35,7 @@ class GameScene {
 		this.three.renderer.shadowMap.enabled = true;
 
 		this.domElement = this.three.renderer.domElement;
+		this.domElement.id = args.canvasId || "game-canvas";
 
 		const color = 0xFFFFFF;
 		const intensity1 = 2;
@@ -128,14 +128,16 @@ class GameScene {
 		this.debug.controls = new OrbitControls(this.debug.camera, this.domElement);
 
 		this.debug.camHelper = new THREE.CameraHelper(this.three.camera);
-		console.log(this.debug.controls);
+		this.debug.controls.enabled = false;
 
 		this.three.scene.add(this.debug.camHelper);
 
 		this.debug.camera.position.set(2, 2, 2)
 		// this.currentCamera = this.debug.camera;
+
 		Key.onKey("Enter", () => {
 			let orPos = this.currentCamera.position;
+			this.debug.controls.enabled = !this.debug.controls.enabled;
 			this.currentCamera = (this.currentCamera === this.debug.camera ? this.three.camera : this.debug.camera);
 		})
 		window.addEventListener('resize', () => {

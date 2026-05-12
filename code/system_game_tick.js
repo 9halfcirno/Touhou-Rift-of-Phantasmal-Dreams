@@ -28,7 +28,8 @@ const system = {
 			// 	console.log(tickCount);
 			// }
 			// 执行游戏逻辑更新
-			this.update?.();
+			try { this.update?.(); } catch (e) { console.error(e) }
+			
 			// 更新最后一帧的时间
 			// 这里加上固定的tick间隔，而不是使用当前时间
 			// 这样可以保持tick间隔的稳定性
