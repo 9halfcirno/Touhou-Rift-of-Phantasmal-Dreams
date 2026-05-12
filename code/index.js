@@ -67,7 +67,7 @@ TH.system.update = () => {
 	if (TH.MouseInput.left) {
 		let mousePos = TH.MouseInput.inMapPosition(scene.currentCamera, debug.main.three.ground);
 		let j = Math.random() * 2 - 1;
-		let e = new TH.Entity("th:entity=bullet/ball", {
+		let e = TH.EntityManager.createEntity("th:entity=bullet/ball", {
 			position: entity.position,
 			rotation: new TH.Vector2(1, 0)
 		});
@@ -77,7 +77,7 @@ TH.system.update = () => {
 	}
 	debugdiv.innerHTML = `player x: ${entity.position.x}, y: ${entity.position.y}, z: ${entity.position.z}
 </br>player hp: ${entity.getComponentValue("th:hp")}
-</br>entity count: ${TH.Entity.getAllEntities().length}
+</br>entity count: ${TH.EntityManager.getAllEntities().length}
 </br>frame: ${THSystem.frame}
 </br>tickDelta: ${THSystem.tickDelta.toFixed(3)}s
 </br>renderDelta: ${THSystem.renderDelta.toFixed(3)}s
@@ -117,18 +117,18 @@ scene.switchToGameMap("th:map=main")
 
 await TH.TextureManager.load("th:texture=entity/reimu")
 await TH.TextureManager.load("th:texture=a")
-await TH.Entity.registerEntity("th:entity=bullet/ball");
-await TH.Entity.registerEntity("th:entity=character/reimu");
+await TH.EntityManager.registerEntity("th:entity=bullet/ball");
+await TH.EntityManager.registerEntity("th:entity=character/reimu");
 await TH.TextureManager.load("th:texture=entity/fairy")
-await TH.Entity.registerEntity("th:entity=enemy/fairy");
-let entity = new TH.Entity("th:entity=character/reimu")
+await TH.EntityManager.registerEntity("th:entity=enemy/fairy");
+let entity = TH.EntityManager.createEntity("th:entity=character/reimu")//new TH.Entity("th:entity=character/reimu")
 debug.entity = entity;
 
-let e2 = new TH.Entity("th:entity=enemy/fairy")
+let e2 = TH.EntityManager.createEntity("th:entity=enemy/fairy")
 debug.main.addObject(entity)
 debug.main.addObject(e2)
 
-let ctrl = new TH.PlayerController(entity.uuid, scene.three.camera)
+let ctrl = new TH.PlayerController(entity, scene.three.camera)
 
 render()
 

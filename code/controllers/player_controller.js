@@ -13,11 +13,12 @@ import {
 import {
 	util
 } from "../utils.js";
+import { EntityManager } from "../managers/entity_manager.js";
 
 class PlayerController extends Controller {
 	constructor(entity, camera) {
 		if (typeof entity === "string") {
-			entity = Entity.getEntity(entity);
+			entity = EntityManager.getEntity(entity);
 		}
 		super(entity);
 		this.camera = camera;

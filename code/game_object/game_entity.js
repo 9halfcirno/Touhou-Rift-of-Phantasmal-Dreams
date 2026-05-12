@@ -3,7 +3,7 @@ import {
 } from "./game_object.js"
 import {
 	TextureManager
-} from "../manager_texture.js";
+} from "../managers/texture_manager.js";
 import {
 	ID
 } from "../parser_thid.js"
@@ -15,10 +15,11 @@ import * as THREE from "../../libs/three.module.js"
 import { Component } from "../entity_components/component.js";
 
 class Entity extends GameObject {
-	constructor(thid = "th:entity=null", params) {
+	constructor(thid = "th:entity=null", manager, params) {
 
-		let def = Entity.entityDefinitions.get(thid);
+		let def = manager.entityDefinitions.get(thid);
 		if (!def) throw new Error(`[Entity] 未注册的实体: ${thid}`);
+
 		let tex = TextureManager.get(def.texture);
 		let geo = new THREE.PlaneGeometry(1, 1);
 		let mat = new THREE.MeshLambertMaterial({
@@ -35,16 +36,19 @@ class Entity extends GameObject {
 			...params
 		})
 		this.thid = thid;
+		this.manager = manager;
 
 		this.isAlive = true;
-		this.summonTime = THSystem.frame;
+		this.spawnTime = THSystem.frame;
 
-		Entity._entityPool.set(this.uuid, this);
 
 		this.components = new Map(); // atts => 属性
 
+		this._initializing = true;
+
 		this.loadAllComponents();
 
+		this._initializing = false;
 		/**
 		 * 移动向量
 		 * @type {Vector3}
@@ -137,17 +141,37 @@ class Entity extends GameObject {
 	die(opts) {
 		// this.setComponentValue("th:hp", 0);
 		this.isAlive = false;
-		Entity.removeEntity(this.uuid);
+		this.manager.removeEntity(this.uuid);
 		this._disposeThree();
 	}
 
 	getComponent(type) {
 		return this.components.get(type);
 	}
-
+	
 	setComponent(type, com) {
-		let component = Component.createComponent(type, com);
-		this.components.set(type, component);
+
+		let component =
+			Component.createComponent(
+				type,
+				com
+			);
+
+		this.components.set(
+			type,
+			component
+		);		
+
+		// 初始化阶段不刷新Query
+		if (!this._initializing) {
+
+			this.manager.onComponentAdded(
+				this,
+				type
+			);
+		}
+
+		return component;
 	}
 
 	hasComponent(type) {
@@ -161,18 +185,57 @@ class Entity extends GameObject {
 	}
 
 	setComponentValue(type, value) {
-		let component = this.components.get(type);
+
+		let component =
+			this.components.get(type);
+
 		if (component) {
+
 			component.value = value;
+
 		} else {
-			const com = new Component.createComponent(type);
+
+			const com =
+				Component.createComponent(type);
+
 			com.value = value;
-			this.components.set(type, com);
+
+			this.components.set(
+				type,
+				com
+			);
+
+			if (!this._initializing) {
+
+				this.manager.onComponentAdded(
+					this,
+					type
+				);
+			}
 		}
 	}
 
+	removeComponent(type) {
+
+		const existed =
+			this.components.has(type);
+
+		if (!existed) {
+			return false;
+		}
+
+		this.components.delete(type);
+
+		this.manager.onComponentRemoved(
+			this,
+			type
+		);
+
+		return true;
+	}
+
 	loadAllComponents() {
-		let def = Entity.entityDefinitions.get(this.thid);
+		let def = this.manager.entityDefinitions.get(this.thid);
 		if (!def) throw new Error(`[Entity] 未注册的实体: ${this.thid}`);
 		if (!def.components) return;
 		for (let [type, data] of Object.entries(def.components)) {
@@ -180,50 +243,9 @@ class Entity extends GameObject {
 		}
 
 	}
-
-	static async registerEntity(thid) {
-		let url = Entity._parseEntityUrl(thid);
-		let entity = await (await fetch(url)).json() // (await import(url)).default;
-		Entity.entityDefinitions.set(entity.thid, entity);
-		return entity;
-	}
-
-	static _parseEntityUrl(thid) {
-		let a = ID.parse(thid);
-		if (a.type !== "entity") throw new Error(`[Entity] 错误的thid类型: ${thid}`);
-		// 解析url
-		let url = `${GAME_CONFIG.RUN_PATH}/definitions/entities`;
-		url += "/" + a.id;
-		url += ".json";
-		return url;
-	}
-	/**
-	 * 
-	 * @param {String} uuid 实体的UUID
-	 * @returns {Entity}
-	 */
-	static getEntity(uuid) {
-		return this._entityPool.get(uuid);
-	}
-
-	static removeEntity(uuid) {
-		return this._entityPool.delete(uuid);
-	}
-
-	/**
-	 * 
-	 * @returns {Array<Entity>}
-	 */
-	static getAllEntities() {
-		return Array.from(this._entityPool.values());
-	}
 }
 
-Entity.entityDefinitions = new Map()
 
-Entity._entityPool = new Map();
-
-Entity.entityDefinitions.set("th:entity=null", {});
 
 
 export { Entity }

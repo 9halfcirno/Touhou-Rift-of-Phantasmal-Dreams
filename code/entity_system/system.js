@@ -1,9 +1,18 @@
+import { EntityManager } from "../managers/entity_manager.js"
+
 class System {
     constructor(opts = {}) {
         this.name = opts.name || "UnnamedSystem";
         const requires = opts.requireComponents || [];
         this.requireComponents = requires;
+
         this.priority = opts.priority || 0;
+
+        // 向EntityManager声明所需Component
+        if (this.requireComponents) {
+            this.query = EntityManager.createQuery(this.requireComponents);
+
+        }
 
         System.registerSystem(this);
     }
@@ -17,10 +26,12 @@ class System {
         System.allSystems.push(system);
         // 按优先级排序，数字越小优先级越高
         System.allSystems.sort((sys1, sys2) => sys1.priority - sys2.priority);
+
+        
     }
 
     static updateAll() {
-        for(let i = 0, n = System.allSystems.length; i < n; i++) {
+        for (let i = 0, n = System.allSystems.length; i < n; i++) {
             const system = System.allSystems[i];
             system.update();
         }

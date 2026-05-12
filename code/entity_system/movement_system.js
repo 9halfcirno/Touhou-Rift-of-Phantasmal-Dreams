@@ -1,5 +1,5 @@
 import { System } from "./system.js";
-import { Entity } from "../game_object/game_entity.js";
+import { EntityManager } from "../managers/entity_manager.js";
 
 /* 依赖：
  * - Entity
@@ -10,7 +10,7 @@ class MovementSystem extends System {
     constructor() {
         super({
             name: "MovementSystem",
-            requireComponents: ["th:position", "th:speed"],
+            requireComponents: [],
             priority: 2
         });
     }
@@ -44,9 +44,10 @@ class MovementSystem extends System {
     }
 
     update() {
-        for (let entity of Entity.getAllEntities()) {
-            this.updateEntity(entity);
-        }        
+        for (const entity of this.query.entities) {
+            
+            this.updateEntity(entity)
+        }
     }
 }
 

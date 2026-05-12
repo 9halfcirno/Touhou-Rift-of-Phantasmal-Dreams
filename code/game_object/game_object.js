@@ -12,8 +12,6 @@ import {
 } from "../config.js"
 import { system } from "../system_game_tick.js"
 
-import { THREEManager } from "../manager_three.js"
-
 
 //=== 显示一个
 

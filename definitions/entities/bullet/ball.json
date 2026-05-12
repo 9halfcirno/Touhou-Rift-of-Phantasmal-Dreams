@@ -3,7 +3,7 @@
 	"texture": "th:texture=a",
 
 	"components": {
-		"th:family": "bullet",
+		"th:bullet": 1,
 		"th:display": {
 			"size": 0.6
 		},

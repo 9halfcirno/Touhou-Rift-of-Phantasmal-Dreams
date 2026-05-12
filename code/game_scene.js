@@ -56,7 +56,7 @@ class GameScene {
 
 		/*=== 场景属性部分 ===*/
 		this.gameMaps = new Map();
-		this.gameMapNow = null;
+		this.currentMap = null;
 
 		this.currentCamera = this.three.camera;
 
@@ -170,8 +170,8 @@ class GameScene {
 	render(opts = {
 		progress: 1
 	}) {
-		if (this.gameMapNow) {
-			let map = this.gameMaps.get(this.gameMapNow);
+		if (this.currentMap) {
+			let map = this.gameMaps.get(this.currentMap);
 			map.tweenThree(opts.progress);
 		};
 
@@ -189,9 +189,9 @@ class GameScene {
 	addGameMap(map) {
 		if (!(map instanceof GameMap)) throw new Error(`GameScene只允许添加GameMap实例`)
 		this.gameMaps.set(map.id, map)
-		if (this.gameMapNow) map._exitScene();
+		if (this.currentMap) map._exitScene();
 		else {
-			this.gameMapNow = map.id;
+			this.currentMap = map.id;
 			map._enterScene()
 		}
 		// 把map的threeGroup添加进来
@@ -199,10 +199,10 @@ class GameScene {
 	}
 	// 切换到map
 	switchToGameMap(id) {
-		if (id === this.gameMapNow) return;
+		if (id === this.currentMap) return;
 		let map = this.gameMaps.get(id);
-		this.gameMaps.get(this.gameMapNow)?._exitScene?.();
-		this.gameMapNow = id;
+		this.gameMaps.get(this.currentMap)?._exitScene?.();
+		this.currentMap = id;
 		map._enterScene();
 	}
 	// 移除map

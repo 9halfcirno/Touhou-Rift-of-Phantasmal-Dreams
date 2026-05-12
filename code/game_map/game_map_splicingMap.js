@@ -3,7 +3,7 @@ import {
 	GameMap
 } from "./game_map.js"
 import {Position} from "../position.js"
-import {TextureManager} from "../manager_texture.js"
+import {TextureManager} from "../managers/texture_manager.js"
 
 class GameSplicingMap extends GameMap {
 	constructor(id) {

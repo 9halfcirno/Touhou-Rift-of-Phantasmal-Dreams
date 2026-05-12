@@ -1,4 +1,4 @@
-import { Entity } from "../game_object/game_entity.js";
+import { EntityManager } from "../managers/entity_manager.js";
 import { System } from "./system.js";
 
 class BulletMovementSystem extends System {
@@ -6,18 +6,14 @@ class BulletMovementSystem extends System {
         super({
             name: "BulletMovementSystem",
             priority: 2,
+            requireComponents: ["th:bullet"]
         });
     }
 
     update() {
-        const entities = Entity.getAllEntities();
+        for (const entity of this.query.entities) {
+            entity.step(entity.rotation)
 
-        for (const entity of entities) {
-            if (entity.hasComponent("th:family")) {
-                if (entity.getComponent("th:family").value === "bullet") {
-                    entity.step(entity.rotation)
-                }
-            }
         }
     }
 }

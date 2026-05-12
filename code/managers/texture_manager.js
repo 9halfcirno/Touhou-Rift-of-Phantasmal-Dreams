@@ -1,7 +1,7 @@
-import * as THREE from "../libs/three.module.js"
+import * as THREE from "../../libs/three.module.js"
 import {
 	ID
-} from "./parser_thid.js"
+} from "../parser_thid.js"
 
 const TextureManager = {
 	cache: new Map(), // 维护[url: THREE.Texture实例]的映射，也充当纹理池
