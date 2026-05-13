@@ -1,9 +1,9 @@
-import * as THREE from "../../libs/three.module.js"
+import * as THREE from "three"
 import {
 	GameMap
 } from "./game_map.js"
 import {Position} from "../position.js"
-import {TextureManager} from "../managers/texture_manager.js"
+import {TextureLoader} from "../loaders/texture_loader.js"
 
 class GameSplicingMap extends GameMap {
 	constructor(id) {
@@ -28,7 +28,7 @@ class GameSplicingMap extends GameMap {
 				transparent: true, // 使纹理透明
 				alphaTest: true // 防止透明像素遮挡后方
 			});
-			let tex = await TextureManager.get(block.texture, {async: true})
+			let tex = await TextureLoader.get(block.texture, {async: true})
 			mat.map = tex;
 			let mesh = new THREE.Mesh(geo, mat);
 			mesh.receiveShadow = true;

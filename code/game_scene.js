@@ -1,7 +1,7 @@
-import * as THREE from "../libs/three.module.js"
+import * as THREE from "three"
 import {
 	OrbitControls
-} from "../libs/three.OrbitControls.js"
+} from "three/addons/controls/OrbitControls.js"
 import {
 	GameMap
 } from "./game_map/game_map.js"
@@ -178,6 +178,7 @@ class GameScene {
 		this._updateLightPosition();
 		this.debug?.controls?.update?.();
 		this.debug?.camHelper?.update?.();
+		
 		this.three.renderer.render(this.three.scene, this.currentCamera)
 	}
 

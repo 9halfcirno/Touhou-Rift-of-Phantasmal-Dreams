@@ -22,8 +22,16 @@
 			margin: auto;
 		}
 	</style>
+	<script type="importmap">
+		{
+			"imports": {
+				"three": "./libs/three-0.171.0/build/three.module.js",
+				"three/addons/": "./libs/three-0.171.0/examples/jsm/"
+			}
+		}
+	</script>
 	<script type="module">
-		import * as THREE from "./libs/three.module.js";
+		import * as THREE from "./libs/three-0.171.0/build/three.module.js";
 		globalThis.THREE = THREE;
 	</script>
 </head>

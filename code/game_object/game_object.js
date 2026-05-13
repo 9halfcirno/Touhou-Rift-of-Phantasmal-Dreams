@@ -1,4 +1,4 @@
-import * as THREE from "../../libs/three.module.js"
+import * as THREE from "three"
 import {
 	Position,
 	Vector3,
@@ -18,35 +18,29 @@ import { system } from "../system_game_tick.js"
 class GameObject {
 	/**
 	 * 创建一个GameObject对象
-	 * @param {Object} obj 这个对象应该包含material, geometry
+	 * @param {Object} params 这个对象应该包含material, geometry
 	 */
-	constructor(obj = {
-		material: new THREE.MeshBasicMaterial(),
-		geometry: new THREE.BoxGeometry(1, 1, 1)
-	}) {
+	constructor(params = {}) {
 		this.three = {
-			material: obj.material,
-			geometry: obj.geometry,
-			mesh: new THREE.Mesh(obj.geometry, obj.material) // 自动创建Mesh
+			mesh: params.mesh,
 		};
-		this.position = obj.position?.clone?.() || new Position();
+
+		this.position = params.position?.clone?.() || new Position();
 		this._orginPos = new Position(...this.position); // 用于Threee缓动的坐标
 		// x => yaw (水平旋转)
 		// y => pitch (垂直旋转)
-		this.rotation = obj.rotation?.clone?.() || new Vector2(0, 0);
+		this.rotation = params.rotation?.clone?.() || new Vector2(0, 0);
 		this.uuid = util.uuid(); // 获取uuid
 		this.updateThreeData(1);
-		this._resizeMeshByTexture();
-		this._fixThreePosition();
+
 
 		this.three.mesh.name = this.uuid;
 		this.three.mesh.castShadow = true;
 		this.three.mesh.receiveShadow = true;
 		this.inMap = null;
 		// GameObject.objectsMap.set(this.uuid, this); // 把自己扔对象池
-
-		this.texture = this.three.material.map; // 保存引用		
 	}
+
 	/**
 	 * 设置GmaeObject的游戏坐标，并自动处理THREE坐标
 	 * @param {Number} x 
@@ -59,8 +53,6 @@ class GameObject {
 		this._orginPos.copy(this.position);
 		this.position.set(x, y, z);
 		this.updateThreeData();
-		this._fixThreePosition();
-		return this;
 	}
 	/**
 	 * 
@@ -69,22 +61,18 @@ class GameObject {
 	updateThreeData(p = 1) {
 		p = p > 1 ? 1 : p;
 		let mesh = this.three.mesh;
-		// 废用 mesh.rotation.set(...this.rotation, 0)
-
-		// const toPos = this.position.toTHREE().toArray();
-		// const orgPos = this._orginPos.toTHREE().toArray();
-
-		// mesh.position.set(...(orgPos.map((pos, i) => pos + (toPos[i] - pos) * p)))
 		mesh.position.set(...this.tweenPosition(p).toTHREE())
-		mesh.rotation.set(Config["object2d_tilt"], 0, 0); // 2D对象只需要倾斜角度
-		// 精灵图不用随着旋转
-		this._fixThreePosition();
 	}
 
 	tweenThree(p) {
 		this.updateThreeData(p)
 	}
 
+	/**
+	 * 获取插值坐标，基于TH坐标系
+	 * @param {number} p 
+	 * @returns 
+	 */
 	tweenPosition(p) {
 		const toPos = this.position.toArray();
 		const orgPos = this._orginPos.toArray();
@@ -92,33 +80,13 @@ class GameObject {
 		return new Position(...orgPos.map((pos, i) => pos + (toPos[i] - pos) * p))
 	}
 
-	_resizeMeshByTexture() { // 应该考虑repeat
-		let tex = this.three.material?.map;
-		if (!tex || !tex.image) return;
-		const img = tex.image;
-		const unit = tex.userData.pixelsPerUnit; // 16像素 = 1单位
-		const width = img.width * tex.repeat.x / unit;
-		const height = img.height * tex.repeat.y / unit;
-		// 调整 mesh 的缩放
-		this.three.mesh.scale.set(width, height, 1);
-	}
 
-	_fixThreePosition() { // 修正网格位置
-		if (this.three.material?.map?.image) {
-			let tex = this.three.material.map;
-			const height = tex.image.height * tex.repeat.y / tex.userData.pixelsPerUnit;
-			let tilt = Config["object2d_tilt"];
-			this.three.mesh.position.y += Math.cos(tilt) * height / 2;
-			this.three.mesh.position.z += Math.sin(tilt) * height / 2;
-		}
-	}
 
 	updateTexture(tex, opts) {
 
 	}
 
 	_disposeThree() {
-		this.three.material.map.dispose();
 		this.three.material.dispose();
 		if (!this.three.geometry === GameObject.SharedPlaneGeometry) this.three.geometry.dispose();
 
@@ -129,7 +97,7 @@ class GameObject {
 	}
 }
 
-GameObject.SharedPlaneGeometry = new THREE.PlaneGeometry(1, 1);
+GameObject.SharedBoxMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshBasicMaterial())
 
 export {
 	GameObject

@@ -1,9 +1,9 @@
 import {
-	GameObject
-} from "./game_object.js"
+	GameObject2D
+} from "./game_object_2d.js"
 import {
-	TextureManager
-} from "../managers/texture_manager.js";
+	TextureLoader
+} from "../loaders/texture_loader.js";
 import {
 	ID
 } from "../parser_thid.js"
@@ -11,31 +11,29 @@ import {
 	Config
 } from "../config.js";
 import { Position, Vector2, Vector3 } from "../position.js";
-import * as THREE from "../../libs/three.module.js"
+import * as THREE from "../../libs/three-0.171.0/build/three.module.js"
 import { Component } from "../entity_components/component.js";
 
-class Entity extends GameObject {
-	constructor(thid = "th:entity=null", manager, params) {
+class Entity extends GameObject2D {
+	constructor(thid = "th:entity=null", manager, params = {}) {
 
 		let def = manager.entityDefinitions.get(thid);
 		if (!def) throw new Error(`[Entity] 未注册的实体: ${thid}`);
 
-		let tex = TextureManager.get(def.texture, {shared: true});
-		//let geo = new THREE.PlaneGeometry(1, 1);
-		let mat = new THREE.MeshLambertMaterial({
+		let mat = params.material || new THREE.MeshLambertMaterial({
 			side: THREE.DoubleSide,
 			transparent: true, // 使纹理透明
 			alphaTest: true // 防止透明像素遮挡后方
 		});
-		mat.map = tex;
+		let tex = mat.map || TextureLoader.get(def.texture, { shared: true });
+		//let geo = new THREE.PlaneGeometry(1, 1);
 
+		mat.map = tex;
 		super({
-			geometry: GameObject.SharedPlaneGeometry,
 			material: mat,
 			rotation: new Vector2(), // Config["object2d_tilt"],
 			...params
 		})
-		
 		this.thid = thid;
 		this.manager = manager;
 
@@ -89,7 +87,7 @@ class Entity extends GameObject {
 		if (!speed) return;
 		const yaw = this.rotation.x;
 		const pitch = this.rotation.y;
-		
+
 		const cosPitch = Math.cos(pitch);
 
 		const vx = Math.sin(yaw) * cosPitch;
@@ -132,7 +130,7 @@ class Entity extends GameObject {
 		// if (hor > 0.0001) {
 		// 	this.rotation.x = Math.atan2(dx, dz);
 		// }
-	
+
 		this.rotation.x = Math.atan2(dx, dz);
 		this.rotation.y = Math.atan2(dy, hor)
 
@@ -149,7 +147,7 @@ class Entity extends GameObject {
 	getComponent(type) {
 		return this.components.get(type);
 	}
-	
+
 	setComponent(type, com) {
 
 		let component =
@@ -161,7 +159,7 @@ class Entity extends GameObject {
 		this.components.set(
 			type,
 			component
-		);		
+		);
 
 		// 初始化阶段不刷新Query
 		if (!this._initializing) {

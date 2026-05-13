@@ -1,7 +1,8 @@
 import * as TH from "./module_all.js"
 import {
 	default as Stats
-} from "../libs/three.stats.js";
+} from "three/addons/libs/stats.module.js";
+import { MMDLoader } from "three/addons/loaders/MMDLoader.js";
 globalThis.TH = TH;
 
 let statsTps = new Stats();
@@ -57,6 +58,81 @@ document.getElementById("game").append(scene.domElement)
 document.addEventListener('contextmenu', function (event) {
 	event.preventDefault();
 });
+window.onerror = (...e) => {
+	console.error(`[GAME] 未捕捉异常在tick: ${THSystem.frame}`, ...e);
+
+}
+
+
+debug.main = new TH.GameSplicingMap("th:map=main");
+await debug.main._createMap()
+debug.main.$debug()
+scene.addGameMap(debug.main)
+scene.switchToGameMap("th:map=main")
+
+function loadMMD(url) {
+	return new Promise((res, rej) => {
+		(new MMDLoader()).load(url, (m) => {
+			res(m)
+		}, null, rej)
+	})
+}
+
+
+await TH.TextureLoader.load("th:texture=entity/reimu")
+await TH.TextureLoader.load("th:texture=a")
+await TH.EntityManager.registerEntity("th:entity=bullet/ball");
+await TH.EntityManager.registerEntity("th:entity=character/reimu");
+await TH.TextureLoader.load("th:texture=entity/fairy")
+await TH.EntityManager.registerEntity("th:entity=enemy/fairy");
+
+const model = await loadMMD(`${GAME_CONFIG.RUN_PATH}/assets/models/mmd/cirno/cirno.pmx`);
+
+model.traverse(obj => {
+
+	if (!obj.isMesh) return;
+
+	const mats = Array.isArray(obj.material)
+		? obj.material
+		: [obj.material];
+
+	mats.forEach(mat => {
+
+		console.log(mat);
+
+		if (mat.gradientMap) {
+
+			console.log(
+				"gradientMap =",
+				mat.gradientMap
+			);
+
+			console.log(
+				"image =",
+				mat.gradientMap.image
+			);
+
+			console.log(
+				"source =",
+				mat.gradientMap.source
+			);
+
+		}
+
+	});
+});
+setTimeout(() => { scene.three.scene.add(model) }, 4000)
+
+
+let entity = TH.EntityManager.createEntity("th:entity=character/reimu")//new TH.Entity("th:entity=character/reimu")
+
+debug.entity = entity;
+
+let e2 = TH.EntityManager.createEntity("th:entity=enemy/fairy")
+debug.main.addObject(entity)
+debug.main.addObject(e2)
+
+let ctrl = new TH.PlayerController(entity, scene.three.camera)
 
 
 TH.system.update = () => {
@@ -110,26 +186,7 @@ function render() {
 	requestAnimationFrame(render)
 }
 
-debug.main = new TH.GameSplicingMap("th:map=main");
-await debug.main._createMap()
-debug.main.$debug()
-scene.addGameMap(debug.main)
-scene.switchToGameMap("th:map=main")
 
-await TH.TextureManager.load("th:texture=entity/reimu")
-await TH.TextureManager.load("th:texture=a")
-await TH.EntityManager.registerEntity("th:entity=bullet/ball");
-await TH.EntityManager.registerEntity("th:entity=character/reimu");
-await TH.TextureManager.load("th:texture=entity/fairy")
-await TH.EntityManager.registerEntity("th:entity=enemy/fairy");
-let entity = TH.EntityManager.createEntity("th:entity=character/reimu")//new TH.Entity("th:entity=character/reimu")
-debug.entity = entity;
-
-let e2 = TH.EntityManager.createEntity("th:entity=enemy/fairy")
-debug.main.addObject(entity)
-debug.main.addObject(e2)
-
-let ctrl = new TH.PlayerController(entity, scene.three.camera)
 
 render()
 

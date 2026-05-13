@@ -1,4 +1,4 @@
-import * as THREE from "../../libs/three.module.js"
+import * as THREE from "three"
 import {ID} from "../parser_thid.js"
 import {GameObject} from "../game_object/game_object.js"
 import {THREEManager} from "../managers/three_manager.js"

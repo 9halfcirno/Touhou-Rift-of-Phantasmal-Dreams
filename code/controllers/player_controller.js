@@ -37,6 +37,7 @@ class PlayerController extends Controller {
 			this.prevCameraLogicPos.copy(this.currCameraLogicPos);
 
 			// 3. 计算相机【瞬时理想目标】
+			
 			const pos = this.target.position.toTHREE().toArray();
 			let tilt = Config["object2d_tilt"];
 			let dis = Config["camera_distance"];

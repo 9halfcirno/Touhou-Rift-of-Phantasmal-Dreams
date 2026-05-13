@@ -11,8 +11,10 @@ export { Position, Vector2, Vector3 } from "./position.js"
 export { GameObject } from "./game_object/game_object.js"
 export { Entity } from "./game_object/game_entity.js"
 
+// 加载器
+export { TextureLoader } from "./loaders/texture_loader.js"
+
 // 管理器
-export { TextureManager } from "./managers/texture_manager.js"
 export { EntityManager } from "./managers/entity_manager.js"
 
 export { ID } from "./parser_thid.js"
