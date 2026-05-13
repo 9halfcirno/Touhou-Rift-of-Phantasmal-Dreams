@@ -73,6 +73,7 @@ TH.system.update = () => {
 		});
 		// entity.moveTo(...mousePos)
 		e.faceTo(mousePos)
+		//e._disposeThree();
 		debug.main.addObject(e);
 	}
 	debugdiv.innerHTML = `player x: ${entity.position.x}, y: ${entity.position.y}, z: ${entity.position.z}

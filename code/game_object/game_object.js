@@ -42,7 +42,7 @@ class GameObject {
 		this.three.mesh.name = this.uuid;
 		this.three.mesh.castShadow = true;
 		this.three.mesh.receiveShadow = true;
-		this.inMap = null;                                            
+		this.inMap = null;
 		// GameObject.objectsMap.set(this.uuid, this); // 把自己扔对象池
 
 		this.texture = this.three.material.map; // 保存引用		
@@ -114,17 +114,22 @@ class GameObject {
 	}
 
 	updateTexture(tex, opts) {
-		
+
 	}
 
 	_disposeThree() {
 		this.three.material.map.dispose();
 		this.three.material.dispose();
-		this.three.geometry.dispose();
-		this.three.destory = true;
+		if (!this.three.geometry === GameObject.SharedPlaneGeometry) this.three.geometry.dispose();
+
 		this.inMap?.removeObject?.(this);
+
+		this.three.mesh = null; // 移除引用
+		this.three.destory = true;
 	}
 }
+
+GameObject.SharedPlaneGeometry = new THREE.PlaneGeometry(1, 1);
 
 export {
 	GameObject

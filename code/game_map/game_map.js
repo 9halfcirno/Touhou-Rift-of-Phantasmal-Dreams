@@ -29,6 +29,7 @@ class GameMap {
 	addObject(obj) {
 		// 拒绝非GameObject实例
 		if (!(obj instanceof GameObject)) throw new Error(`传入的参数必须是GameObject实例`);
+		if (obj.three.destory) return; // 防止dispose后被添加但没法回收
 		this._threeManager.add(obj.three.mesh)
 
 		obj.inMap = this; // 在对象中保存Map引用

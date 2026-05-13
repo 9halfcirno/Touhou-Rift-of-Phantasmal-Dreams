@@ -54,16 +54,16 @@ const TextureManager = {
 	 * @param {Object} opts 额外选项
 	 * @returns {THREE.Texture}
 	 */
-	get(thid, opts = { async: false }) {
+	get(thid, opts = { async: false, shared: false }) {
 		if (!thid) return;
 
 		if (!opts.async) {
 			let url = this._parseTextureUrl(thid);
 			let org = this.cache.get(url); // 直接从纹理池获取
 			if (!org) throw new Error(`[Texture] 纹理: "${thid}"尚未加载`)
-			return org.clone() // 防止修改原纹理
+			return opts.shared ? org : org.clone() // 防止修改原纹理
 		} else {
-			return this.load(thid).then(tex => tex.clone())
+			return this.load(thid).then(tex => opts.shared ? tex : tex.clone())
 		}
 
 	},

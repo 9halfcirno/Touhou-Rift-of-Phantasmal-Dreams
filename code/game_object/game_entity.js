@@ -20,8 +20,8 @@ class Entity extends GameObject {
 		let def = manager.entityDefinitions.get(thid);
 		if (!def) throw new Error(`[Entity] 未注册的实体: ${thid}`);
 
-		let tex = TextureManager.get(def.texture);
-		let geo = new THREE.PlaneGeometry(1, 1);
+		let tex = TextureManager.get(def.texture, {shared: true});
+		//let geo = new THREE.PlaneGeometry(1, 1);
 		let mat = new THREE.MeshLambertMaterial({
 			side: THREE.DoubleSide,
 			transparent: true, // 使纹理透明
@@ -30,11 +30,12 @@ class Entity extends GameObject {
 		mat.map = tex;
 
 		super({
-			geometry: geo,
+			geometry: GameObject.SharedPlaneGeometry,
 			material: mat,
 			rotation: new Vector2(), // Config["object2d_tilt"],
 			...params
 		})
+		
 		this.thid = thid;
 		this.manager = manager;
 
