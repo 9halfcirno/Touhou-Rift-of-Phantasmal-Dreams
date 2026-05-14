@@ -34,6 +34,7 @@ export default class Game {
 
         TH.MouseInput.bind(this.scene.domElement)
         this.TickSystem = new TH.TickSystem();
+        this.RenderSystem = new TH.RenderSystem();
 
         this._tickFunc = [];
 
@@ -41,10 +42,11 @@ export default class Game {
             this.tick();
         }
 
-        this.render = () => {
+        this.RenderSystem.update = () => {
             this.scene.render({ progress: this.TickSystem.tickP });
-            requestAnimationFrame(this.render);
         }
+
+        this._preventWebDefaultAction();
 
     }
 
@@ -66,11 +68,12 @@ export default class Game {
     }
 
     startRender() {
-        this.render();
+        this.RenderSystem.startRender();
     }
 
     exit() {
-
+        this.TickSystem.stopTick();
+        this.RenderSystem.stopRender();
     }
 
     _preventWebDefaultAction() {
