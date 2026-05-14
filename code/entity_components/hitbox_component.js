@@ -10,12 +10,14 @@ class HitboxComponent extends Component {
     constructor(data) {
         super("th:hitbox", data);
         this.shape = data.shape;
-        if (data.shape === SHAPE.CIRCLE) {
+        if (data.shape === SHAPE.CIRCLE) { // 圆形
             this.r = data.r;
-        } else if (data.shape === SHAPE.BOX) {
+
+        } else if (data.shape === SHAPE.BOX) { // 矩形
             this.width = data.width;
             this.height = data.height
-        } else if (data.shape === SHAPE.CUSTOM) {
+
+        } else if (data.shape === SHAPE.CUSTOM) { // 自定义
             this.vertexs = data.vertexs;
         }
     }
@@ -27,6 +29,8 @@ class HitboxComponent extends Component {
             ...self
         }
     }
+
+    set value(data) {}
 }
 
 Component.registerComponent("th:hitbox", HitboxComponent)

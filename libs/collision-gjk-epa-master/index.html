@@ -96,7 +96,7 @@
 		console.log("是否碰撞：", isColliding);
 		
 		// 获取碰撞响应（穿透向量）
-		const response = gjk.intersect(shape1, shape2);
+		let response = gjk.intersect(shape1, shape2);
 		if (response) {
 		  console.log("碰撞法线：", response);
 		  console.log("穿透深度：", Math.sqrt(response.x*response.x + response.y*response.y));

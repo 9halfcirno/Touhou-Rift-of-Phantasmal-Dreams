@@ -38,7 +38,7 @@ class Entity extends GameObject2D {
 		this.manager = manager;
 
 		this.isAlive = true;
-		this.spawnTime = THSystem.frame;
+		this.spawnTime = params.frame || 0;
 
 
 		this.components = new Map(); // atts => 属性

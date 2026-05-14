@@ -1,18 +1,22 @@
 import { Config } from "./config.js";
 
-const system = {
-	frame: 0,
-	_lastTickTime: 0,
-	_maxTickTickNum: 5, // 最多追加5轮tick
-	_nowTickTickNum: 0, // 目前已经追加的tick数
+export class TickSystem {
+	constructor() {
+		this.frame = 0;
+		this._lastTickTime = 0;
+		this._maxTickTickNum = 5;
+		this._nowTickTickNum = 0;
+		
+		this.tickP = 0;
+		this.tickDelta = 0;
+		this.renderDelta = 0;
 
-	tickP: 0, // 渲染距逻辑更新进度
-	tickDelta: 0, // 逻辑更新差时
-	renderDelta: 0, // 渲染差时
+		this._tickId = 0;
+	}
 
 	needTick() {
 		return Date.now() - this._lastTickTime > Config["game_tick_interval"];
-	},
+	}
 
 	tick() {
 		const now = Date.now();
@@ -50,9 +54,7 @@ const system = {
 
 		// 重置当前追加的tick数
 		this._nowTickTickNum = 0;
-	},
-
-	_tickId: 0,
+	}
 
 	startTick() {
 		if (this._tickId) {
@@ -72,12 +74,12 @@ const system = {
 		};
 
 		this._tickId = requestAnimationFrame(keepTick);
-	},
+	}
 
 	stopTick() {
 		cancelAnimationFrame(this._tickId);
 		this._tickId = 0;
-	},
+	}
 
 	// 重置系统状态
 	reset() {
@@ -85,9 +87,5 @@ const system = {
 		this.frame = 0;
 		this._lastTickTime = 0;
 		this._nowTickTickNum = 0;
-	},
+	}
 };
-
-globalThis.THSystem = system;
-
-export { system };

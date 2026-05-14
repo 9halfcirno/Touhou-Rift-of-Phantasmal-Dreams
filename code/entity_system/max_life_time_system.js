@@ -10,11 +10,11 @@ class MaxLifeTimeSystem extends System {
         });
     }
 
-    update() {
+    update({ frame }) {
         const entities = this.query.entities;
         for (const entity of entities) { // 检查生命值
             const time = entity.getComponent("th:max_life_time").value;
-            if (THSystem.frame - entity.spawnTime > time) entity.die();
+            if (frame - entity.spawnTime > time) entity.die();
 
         }
     }

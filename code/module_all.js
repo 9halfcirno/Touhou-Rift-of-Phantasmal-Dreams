@@ -1,6 +1,8 @@
 export { Ticker } from "./ticker.js"
 export { GameScene } from "./game_scene.js"
 
+export { TickSystem } from "./tick_system.js"
+
 // 地图
 export { GameMap } from "./game_map/game_map.js"
 export { GameSplicingMap } from "./game_map/game_map_splicingMap.js"
@@ -43,5 +45,3 @@ export { MovementSystem } from "./entity_system/movement_system.js"
 export { MaxLifeTimeSystem } from "./entity_system/max_life_time_system.js"
 export { HealthySystem } from "./entity_system/healthy_system.js"
 export { BulletMovementSystem } from "./entity_system/bullet_movement_system.js"
-
-export { system } from "./system_game_tick.js"

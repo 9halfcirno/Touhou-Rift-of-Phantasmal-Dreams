@@ -30,10 +30,10 @@ class System {
         
     }
 
-    static updateAll() {
+    static updateAll({ frame }) {
         for (let i = 0, n = System.allSystems.length; i < n; i++) {
             const system = System.allSystems[i];
-            system.update();
+            system.update({ frame });
         }
     }
 }

@@ -10,7 +10,6 @@ import {
 import {
 	Config
 } from "../config.js"
-import { system } from "../system_game_tick.js"
 
 
 //=== 显示一个
