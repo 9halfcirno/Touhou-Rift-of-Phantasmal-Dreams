@@ -2,6 +2,7 @@ export { Ticker } from "./ticker.js"
 export { GameScene } from "./game_scene.js"
 
 export { TickSystem } from "./tick_system.js"
+export { RenderSystem } from "./render_system.js"
 
 // 地图
 export { GameMap } from "./game_map/game_map.js"

@@ -74,7 +74,8 @@ const Mou = {
 
     _raycaster: new THREE.Raycaster(),
     _intersectionPoint : new THREE.Vector3(),
-    _mouse : new THREE.Vector2(),
+    _mouse: new THREE.Vector2(),
+    _inMapPos: new Position(),
     inMapPosition(camera, plane) {
         // 获取 canvas 相对于视口的位置
         const rect = this.canvas?.getBoundingClientRect() || {
@@ -98,11 +99,12 @@ const Mou = {
             // 如果传入的是 THREE.Plane
             let pos = this._raycaster.ray.intersectPlane(plane, this._intersectionPoint);
             if (pos) {
-                let thPos = new Position();
-                thPos.x = pos.x;
-                thPos.y = pos.y;
-                thPos.z = -pos.z;
-                return thPos;//new THREE.Vector3(pos.x, pos.y, -pos.z)//pos//new TH.Position(pos.x, pos.z, pos.y);
+                this._inMapPos.set(pos.x, pos.y, -pos.z);
+                // let thPos = new Position();
+                // thPos.x = pos.x;
+                // thPos.y = pos.y;
+                // thPos.z = -pos.z;                
+                return this._inMapPos;//new THREE.Vector3(pos.x, pos.y, -pos.z)//pos//new TH.Position(pos.x, pos.z, pos.y);
             } else {
                 return new Position();
                 //return null;

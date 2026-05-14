@@ -93,7 +93,7 @@ window.addEventListener("keyup", event => {
 	event.preventDefault()
 });
 
-// ✅ 关键修复：窗口失焦 / 页面切换
+
 window.addEventListener("blur", () => {
 	KeyboardInput._resetAllKeys();
 });
