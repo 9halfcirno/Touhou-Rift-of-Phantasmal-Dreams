@@ -1,6 +1,6 @@
 import {
-	Controller
-} from "./controller.js";
+	EntityController
+} from "./entity_controller.js";
 import {
 	KeyboardInput as Key
 } from "../inputs/keyboard.js";
@@ -13,13 +13,9 @@ import {
 import {
 	util
 } from "../utils.js";
-import { EntityManager } from "../managers/entity_manager.js";
 
-class PlayerController extends Controller {
+class PlayerController extends EntityController {
 	constructor(entity, camera) {
-		if (typeof entity === "string") {
-			entity = EntityManager.getEntity(entity);
-		}
 		super(entity);
 		this.camera = camera;
 
@@ -56,9 +52,20 @@ class PlayerController extends Controller {
 				return p + (toPos[i] - p) * lerpFactor;
 			}));
 		}
+
+		if (this.target && this.target.isAlive) {
+
+			// 角色移动
+			// 2. 处理角色移动
+			let w = Key.key("w").down, a = Key.key("a").down;
+			let s = Key.key("s").down, d = Key.key("d").down;
+			//let down = Key.key("Shift").down, fly = Key.key(" ").down;
+			let speed = (this.target.getComponentValue("th:speed") || 0.5);
+			this.target.moveBy((d - a) * speed, /* (fly - down) * speed */ 0, (w - s) * speed);
+		}
 	}
 
-	onRender(opts = { progress: 0 }) {
+	onRender(opts = { progress: 1 }) {		
 		if (this.camera) {
 
 			// 在上一个逻辑位置和当前逻辑位置之间连起来
@@ -70,17 +77,6 @@ class PlayerController extends Controller {
 
 			// 旋转通常直接同步即可
 			this.camera.rotation.set(Config["object2d_tilt"] - Math.PI / 2, 0, 0);
-		}
-
-		if (this.target && this.target.isAlive) {
-
-			// 角色移动
-			// 2. 处理角色移动
-			let w = Key.key("w").down, a = Key.key("a").down;
-			let s = Key.key("s").down, d = Key.key("d").down;
-			let down = Key.key("Shift").down, fly = Key.key(" ").down;
-			let speed = (this.target.getComponentValue("th:speed") || 0.5) * opts.progress;
-			this.target.moveBy((d - a) * speed, (fly - down) * speed, (w - s) * speed);
 		}
 	}
 }

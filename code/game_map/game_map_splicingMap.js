@@ -16,6 +16,11 @@ class GameSplicingMap extends GameMap {
 		this.three.group.add(floor)
 	}
 
+	async init() {
+		await super.init();
+		await this._createMap();
+	}
+
 	async _createMap() {
 		let data = await this._loadData();
 		if (data.type !== "splicing") throw new Error("GameSplicingMap数据必须为\"splicing\"类型")

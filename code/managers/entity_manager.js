@@ -15,22 +15,38 @@ class EntityQuery {
     }
 }
 
-const EntityManager = {
+function _parseEntityUrl(thid) {
 
-    /**
-     * thid => definition
-     */
-    entityDefinitions: new Map(),
+    let a = ID.parse(thid);
 
-    /**
-     * uuid => entity
-     */
-    _entityPool: new Map(),
+    if (a.type !== "entity") {
+        throw new Error(
+            `[Entity] 错误的thid类型: ${thid}`
+        );
+    }
 
-    /**
-     * queryKey => EntityQuery
-     */
-    _queries: new Map(),
+    let url =
+        `${GAME_CONFIG.RUN_PATH}/definitions/entities`;
+
+    url += "/" + a.id;
+
+    url += ".json";
+
+    return url;
+}
+
+class EntityManager {
+    constructor() {
+        /**
+         * uuid => entity
+         */
+        this._entityPool = new Map()
+
+        /**
+         * queryKey => EntityQuery
+         */
+        this._queries = new Map()
+    }
 
     createEntity(thid, params) {
 
@@ -47,11 +63,11 @@ const EntityManager = {
         this.refreshEntityQueries(ent);
 
         return ent;
-    },
+    }
 
-    async registerEntity(thid) {
+    static async registerEntity(thid) {
 
-        let url = this._parseEntityUrl(thid);
+        let url = _parseEntityUrl(thid);
 
         let entity =
             await (await fetch(url)).json();
@@ -62,27 +78,9 @@ const EntityManager = {
         );
 
         return entity;
-    },
+    }
 
-    _parseEntityUrl(thid) {
-
-        let a = ID.parse(thid);
-
-        if (a.type !== "entity") {
-            throw new Error(
-                `[Entity] 错误的thid类型: ${thid}`
-            );
-        }
-
-        let url =
-            `${GAME_CONFIG.RUN_PATH}/definitions/entities`;
-
-        url += "/" + a.id;
-
-        url += ".json";
-
-        return url;
-    },
+    
 
     /**
      * System创建查询
@@ -124,7 +122,7 @@ const EntityManager = {
         this._queries.set(key, query);
 
         return query;
-    },
+    }
 
     /**
      * Entity是否匹配Query
@@ -141,7 +139,7 @@ const EntityManager = {
         }
 
         return true;
-    },
+    }
 
     /**
      * 刷新Entity所属Query
@@ -164,7 +162,7 @@ const EntityManager = {
                 query.entities.delete(entity);
             }
         }
-    },
+    }
 
     /**
      * Component添加后调用
@@ -172,7 +170,7 @@ const EntityManager = {
     onComponentAdded(entity, componentName) {
 
         this.refreshEntityQueries(entity);
-    },
+    }
 
     /**
      * Component删除后调用
@@ -180,17 +178,16 @@ const EntityManager = {
     onComponentRemoved(entity, componentName) {
 
         this.refreshEntityQueries(entity);
-    },
+    }
 
     getEntity(uuid) {
 
         return this._entityPool.get(uuid);
-    },
+    }
 
-    removeEntity(uuid) {
+    removeEntity(ent) {
 
-        const entity =
-            this._entityPool.get(uuid);
+        const entity = typeof ent === "string" ? this._entityPool.get(ent) : ent;
 
         if (!entity) {
             return false;
@@ -202,8 +199,8 @@ const EntityManager = {
             query.entities.delete(entity);
         }
 
-        return this._entityPool.delete(uuid);
-    },
+        return this._entityPool.delete(ent);
+    }
 
     getAllEntities() {
 
@@ -212,6 +209,11 @@ const EntityManager = {
         );
     }
 };
+
+/**
+ * thid => definition
+ */
+EntityManager.entityDefinitions = new Map();
 
 EntityManager.entityDefinitions.set(
     "th:entity=null",

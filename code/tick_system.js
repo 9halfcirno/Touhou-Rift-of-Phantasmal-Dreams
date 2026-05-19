@@ -9,7 +9,6 @@ export class TickSystem {
 		
 		this.tickP = 0;
 		this.tickDelta = 0;
-		this.renderDelta = 0;
 
 		this._tickId = 0;
 	}
@@ -69,7 +68,6 @@ export class TickSystem {
 		const keepTick = () => {
 			this.tick();
 			this.tickP = (Date.now() - this._lastTickTime) / Config.game_tick_interval;
-			this.renderDelta = (Date.now() - this._lastTickTime) / 1000; // 计算渲染差时，单位为秒
 			this._tickId = requestAnimationFrame(keepTick);
 		};
 

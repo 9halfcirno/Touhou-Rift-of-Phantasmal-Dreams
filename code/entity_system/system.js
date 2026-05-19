@@ -2,42 +2,34 @@ import { EntityManager } from "../managers/entity_manager.js"
 
 class System {
     constructor(opts = {}) {
-        this.name = opts.name || "UnnamedSystem";
+        this.name = opts.name || "UnnamedSystem"; // system的名字
         const requires = opts.requireComponents || [];
         this.requireComponents = requires;
 
+        this.query = [];
+
         this.priority = opts.priority || 0;
-
-        // 向EntityManager声明所需Component
-        if (this.requireComponents) {
-            this.query = EntityManager.createQuery(this.requireComponents);
-
-        }
-
-        System.registerSystem(this);
     }
 
-    static registerSystem(system) {
-        // if (this.allSystems.has(system.name)) {
-        //     console.warn(`系统已存在，名称: ${system.name}`);
-        //     return;
-        // }
-
-        System.allSystems.push(system);
-        // 按优先级排序，数字越小优先级越高
-        System.allSystems.sort((sys1, sys2) => sys1.priority - sys2.priority);
-
-        
+    setQuery(que) {
+        this.query = que;
     }
 
-    static updateAll({ frame }) {
-        for (let i = 0, n = System.allSystems.length; i < n; i++) {
-            const system = System.allSystems[i];
-            system.update({ frame });
-        }
+    update() {
+        throw new Error(`[${this.name}] 必须实现update方法`)
+    }
+
+    static createSystem(id) {
+        let sclass = System.systems.get(id);
+        if (!sclass) throw new Error(`未注册的system: "${id}"`);
+        return new sclass();
+    }
+
+    static registerSystem(name, sysclass) {
+        System.systems.set(name, sysclass);
     }
 }
 
-System.allSystems = [];
+System.systems = new Map();
 
 export { System };

@@ -170,19 +170,19 @@ class GameScene {
 	render(opts = {
 		progress: 1
 	}) {
-		if (this.currentMap) {
-			let map = this.gameMaps.get(this.currentMap);
-			map.tweenThree(opts.progress);
-		};
+		this.currentMap?.tweenThree(opts.progress);
+
 
 		this._updateLightPosition();
 		this.debug?.controls?.update?.();
 		this.debug?.camHelper?.update?.();
-		
+
 		this.three.renderer.render(this.three.scene, this.currentCamera)
 	}
 
-	update() {
+	update({ frame }) {
+		
+		this.currentMap.update({ frame }); // 更新地图
 	}
 
 	/*=== GameMap管理 ===*/
@@ -190,25 +190,29 @@ class GameScene {
 	addGameMap(map) {
 		if (!(map instanceof GameMap)) throw new Error(`GameScene只允许添加GameMap实例`)
 		this.gameMaps.set(map.id, map)
-		if (this.currentMap) map._exitScene();
+		if (this.currentMap) map._exitScene(); // 如果当前有地图，则隐藏新地图
 		else {
-			this.currentMap = map.id;
+			this.currentMap = map;
 			map._enterScene()
 		}
 		// 把map的threeGroup添加进来
 		this.three.scene.add(map.three.group);
 	}
 	// 切换到map
-	switchToGameMap(id) {
-		if (id === this.currentMap) return;
-		let map = this.gameMaps.get(id);
-		this.gameMaps.get(this.currentMap)?._exitScene?.();
-		this.currentMap = id;
+	switchToGameMap(map) {
+		if (map === this.currentMap) return;
+		if (typeof map === "string") map = this.gameMaps.get(map);
+		this.currentMap?._exitScene?.();
+		this.currentMap = map;
 		map._enterScene();
 	}
 	// 移除map
-	removeGameMap(id) {
-		let map = this.gameMaps.get(id);
+	removeGameMap(map) {
+		if (map === this.currentMap) {
+			throw new Error(`无法移除当前载入的地图`);
+		};
+		map = this.gameMaps.get(map.id);
+		this.gameMaps.delete(map.id);
 		map?._exitScene?.();
 		this.three.scene.remove(map.three.group)
 	}

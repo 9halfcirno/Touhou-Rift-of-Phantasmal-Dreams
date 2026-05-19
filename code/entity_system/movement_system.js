@@ -1,5 +1,4 @@
 import { System } from "./system.js";
-import { EntityManager } from "../managers/entity_manager.js";
 
 /* 依赖：
  * - Entity
@@ -43,14 +42,14 @@ class MovementSystem extends System {
         movement.set(0, 0, 0);
     }
 
-    update() {
-        for (const entity of this.query.entities) {
+    update({ entities }) {
+        for (const entity of entities) {
             
             this.updateEntity(entity)
         }
     }
 }
 
-new MovementSystem();
+System.registerSystem("th:system=movement_system", MovementSystem)
 
 export { MovementSystem };

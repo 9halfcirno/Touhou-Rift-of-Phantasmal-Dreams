@@ -5,7 +5,6 @@ const Mou = {
     bind(canvas) {
         if (typeof canvas === "string") canvas = document.getElementById(canvas)
         this.canvas = canvas;
-        console.log(canvas)
     },
     left: false,
     right: false,
@@ -118,14 +117,14 @@ window.addEventListener("mousedown", event => {
     switch (event.button) {
         case 0:
             Mou.left = true;
-            Mou._buttonCallbacks.get('leftDown')?.forEach(cb => cb());
+            Mou._buttonCallbacks.get('leftDown')?.forEach(cb => cb(event));
             break;
         case 1:
             Mou.middle = true;
             break;
         case 2:
             Mou.right = true;
-            Mou._buttonCallbacks.get('rightDown')?.forEach(cb => cb());
+            Mou._buttonCallbacks.get('rightDown')?.forEach(cb => cb(event));
             break;
     }
 })
@@ -134,14 +133,14 @@ window.addEventListener("mouseup", event => {
     switch (event.button) {
         case 0:
             Mou.left = false;
-            Mou._buttonCallbacks.get('leftUp')?.forEach(cb => cb());
+            Mou._buttonCallbacks.get('leftUp')?.forEach(cb => cb(event));
             break;
         case 1:
             Mou.middle = false;
             break;
         case 2:
             Mou.right = false;
-            Mou._buttonCallbacks.get('rightUp')?.forEach(cb => cb());
+            Mou._buttonCallbacks.get('rightUp')?.forEach(cb => cb(event));
             break;
     }
 })

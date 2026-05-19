@@ -1,0 +1,9 @@
+{
+	"id": "th:map=seb",
+	"type": "splicing",
+	"data": [{
+		"texture": "th:texture=characters",
+		"position": [0, 0],
+		"size": [100, 600]
+	}]
+}

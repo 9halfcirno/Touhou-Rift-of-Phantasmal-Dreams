@@ -1,4 +1,3 @@
-import { EntityManager } from "../managers/entity_manager.js";
 import { System } from "./system.js";
 
 class HealthySystem extends System {
@@ -10,8 +9,7 @@ class HealthySystem extends System {
         });
     }
 
-    update() {
-        const entities = this.query.entities;
+    update({ entities }) {
         for (const entity of entities) { // 检查生命值
             const hpComponent = entity.getComponent("th:hp");
             const hp = hpComponent.value || 0;
@@ -27,6 +25,6 @@ class HealthySystem extends System {
     }
 }
 
-new HealthySystem();
+System.registerSystem("th:system=healthy_system", HealthySystem);
 
 export { HealthySystem };

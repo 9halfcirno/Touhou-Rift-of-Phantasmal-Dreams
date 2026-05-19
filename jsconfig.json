@@ -14,5 +14,16 @@
     "exclude": [
         "node_modules",
         "**/node_modules/*"
-    ]
+    ],
+    "paths": {
+        "three": [
+            "./libs/three-0.171.0/build/three.module.js"
+        ],
+        "three/addons/*": [
+            "./libs/three-0.171.0/examples/jsm/*"
+        ],
+        "pixi": [
+            "./libs/pixi/dist/pixi.mjs"
+        ]
+    }
 }

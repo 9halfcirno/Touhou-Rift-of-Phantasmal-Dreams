@@ -1,4 +1,3 @@
-import { EntityManager } from "../managers/entity_manager.js";
 import { System } from "./system.js";
 
 class BulletMovementSystem extends System {
@@ -10,14 +9,14 @@ class BulletMovementSystem extends System {
         });
     }
 
-    update() {
-        for (const entity of this.query.entities) {
-            entity.step(entity.rotation)
+    update({ entities }) {
+        for (const entity of entities) {
+            entity.step()
 
         }
     }
 }
 
-new BulletMovementSystem();
+System.registerSystem("th:system=bullet_movement_system", BulletMovementSystem)
 
 export { BulletMovementSystem }

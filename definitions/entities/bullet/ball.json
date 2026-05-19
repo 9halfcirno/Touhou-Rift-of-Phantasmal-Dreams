@@ -1,6 +1,6 @@
 {
 	"thid": "th:entity=bullet/ball",
-	"texture": "th:texture=a",
+	"texture": "th:texture=bullet/小玉",
 
 	"components": {
 		"th:bullet": 1,

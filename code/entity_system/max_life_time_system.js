@@ -1,4 +1,3 @@
-import { EntityManager } from "../managers/entity_manager.js";
 import { System } from "./system.js";
 
 class MaxLifeTimeSystem extends System {
@@ -10,9 +9,9 @@ class MaxLifeTimeSystem extends System {
         });
     }
 
-    update({ frame }) {
-        const entities = this.query.entities;
+    update({ entities, frame }) {        
         for (const entity of entities) { // 检查生命值
+            
             const time = entity.getComponent("th:max_life_time").value;
             if (frame - entity.spawnTime > time) entity.die();
 
@@ -20,6 +19,6 @@ class MaxLifeTimeSystem extends System {
     }
 }
 
-new MaxLifeTimeSystem();
+System.registerSystem("th:system=max_life_time_system", MaxLifeTimeSystem)
 
 export { MaxLifeTimeSystem };

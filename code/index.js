@@ -1,10 +1,9 @@
 import * as TH from "./module_all.js"
 import * as THREE from "three";
+import * as PIXI from "../libs/pixi/dist/pixi.mjs";
 
-import {
-	default as Stats
-} from "three/addons/libs/stats.module.js";
-import { MMDLoader } from "three/addons/loaders/MMDLoader.js";
+import Stats from "three/addons/libs/stats.module.js";
+
 globalThis.TH = TH;
 
 import Game from "./Game.js";
@@ -21,44 +20,49 @@ document.body.append(statsFps.domElement);
 const debugdiv = document.getElementById("debug")
 
 
-const game = new Game();
+globalThis.game = new Game();
 
 globalThis.debug = {};
 
 game.scene.$debug()
-
-
-document.getElementById("game").append(game.scene.domElement);
+// document.getElementById("game").append(game.scene.domElement);
+document.getElementById("game").append(game.domElement)
 
 
 debug.main = new TH.GameSplicingMap("th:map=main");
-await debug.main._createMap()
+await debug.main.init()
+
+debug.seb = new TH.GameSplicingMap("th:map=seb")
+await debug.seb.init()
+
 debug.main.$debug()
 game.scene.addGameMap(debug.main)
-game.scene.switchToGameMap("th:map=main")
+game.scene.addGameMap(debug.seb)
+// game.scene.switchToGameMap("th:map=seb")
 
 
-
+await TH.TextureLoader.load("th:texture=characters")
 await TH.TextureLoader.load("th:texture=entity/reimu")
-await TH.TextureLoader.load("th:texture=a")
+await TH.TextureLoader.load("th:texture=bullet/小玉")
 await TH.EntityManager.registerEntity("th:entity=bullet/ball");
 await TH.EntityManager.registerEntity("th:entity=character/reimu");
 await TH.TextureLoader.load("th:texture=entity/fairy")
 await TH.EntityManager.registerEntity("th:entity=enemy/fairy");
 
-// const model = await loadMMD(`${GAME_CONFIG.RUN_PATH}/assets/models/mmd/cirno/cirno.pmx`);
-
-let entity = TH.EntityManager.createEntity("th:entity=character/reimu")//new TH.Entity("th:entity=character/reimu")
-// entity.three.mesh = model;
-// model.scale.set(0.4, 0.4, 0.4)
+let entity = game.scene.currentMap.entityManager.createEntity("th:entity=character/reimu")//new TH.Entity("th:entity=character/reimu")
+// // entity.three.mesh = model;
+// // model.scale.set(0.4, 0.4, 0.4)
 debug.entity = entity;
 
-let e2 = TH.EntityManager.createEntity("th:entity=enemy/fairy")
-debug.main.addObject(entity)
-debug.main.addObject(e2)
+let e2 = game.scene.currentMap.entityManager.createEntity("th:entity=enemy/fairy")
+game.scene.currentMap.addEntity(entity)
+game.scene.currentMap.addObject(e2)
 
 let ctrl = new TH.PlayerController(entity, game.scene.three.camera)
 
+TH.KeyboardInput.onKey("q", () => {
+	game.scene.switchToGameMap(debug.main === game.scene.currentMap ? debug.seb : debug.main)
+})
 
 game.addTickCallback(() => {	
 	ctrl.update();
@@ -66,7 +70,7 @@ game.addTickCallback(() => {
 	if (TH.MouseInput.left) {
 		let mousePos = TH.MouseInput.inMapPosition(game.scene.currentCamera, debug.main.three.ground);
 		let j = Math.random() * 2 - 1;
-		let e = TH.EntityManager.createEntity("th:entity=bullet/ball", {
+		let e = game.scene.currentMap.entityManager.createEntity("th:entity=bullet/ball", {
 			position: entity.position,
 			rotation: new TH.Vector2(1, 0),
 			frame: game.TickSystem.frame
@@ -74,26 +78,37 @@ game.addTickCallback(() => {
 		// entity.moveTo(...mousePos)
 		e.faceTo(mousePos)
 		//e._disposeThree();
-		debug.main.addObject(e);
+		game.scene.currentMap.addObject(e);
 	}
-	debugdiv.innerHTML = `player x: ${entity.position.x}, y: ${entity.position.y}, z: ${entity.position.z}
+	const point = TH.MouseInput.inMapPosition(game.scene.currentCamera, debug.main.three.ground);
+	if (point) {
+		debugSphere.position.set(point.x, point.y, -point.z); // 点击哪里，小红球就跳到哪里
+	}
+	debugdiv.innerHTML = `player x: ${ctrl.target.position.x}, y: ${ctrl.target.position.y}, z: ${ctrl.target.position.z}
 </br>player hp: ${entity.getComponentValue("th:hp")}
-</br>entity count: ${TH.EntityManager.getAllEntities().length}
-</br>frame: ${game.TickSystem.frame}
-</br>tickDelta: ${game.TickSystem.tickDelta.toFixed(3)}s
-</br>renderDelta: ${game.TickSystem.renderDelta.toFixed(3)}s
+</br>entity count: ${game.scene.currentMap.entityManager.getAllEntities().length}
+</br>frame: ${game.scene.currentMap.frame}
+</br>renderDelta: ${game.RenderSystem.renderDelta.toFixed(3)}s
 </br>mouse screen pos:  ${TH.MouseInput.x}, ${TH.MouseInput.y}
 </br>mouse map pos: ${TH.MouseInput.inMapPosition(game.scene.currentCamera, debug.main.three.ground).toArray().map(v => v.toFixed(4)).join()}
 `;
 })
 
-function render() {
+game.addRenderCallback(() => {
 	ctrl.onRender({
 		progress: game.TickSystem.tickP
 	});
 	statsFps.update();
-	requestAnimationFrame(render)
-}
+})
+
+TH.KeyboardInput.onKey(" ", (e) => {
+	entity.faceTo(TH.MouseInput.inMapPosition(game.scene.currentCamera, debug.main.three.ground));
+	entity.step(5)
+})
+
+TH.KeyboardInput.onKey("r", () => {
+	game.scene.removeGameMap(debug.main)
+})
 
 
 TH.KeyboardInput.onKey("z", () => {
@@ -102,7 +117,7 @@ TH.KeyboardInput.onKey("z", () => {
 })
 
 TH.MouseInput.onWheel((wheel) => {
-	TH.Config["camera_distance"] += wheel.y * 0.01;
+	if (game.scene.three.camera === game.scene.currentCamera) TH.Config["camera_distance"] += wheel.y * 0.01;
 })
 
 TH.KeyboardInput.onKey("Tab", (tab) => {
@@ -117,15 +132,61 @@ const debugSphere = new THREE.Mesh(
 );
 game.scene.three.scene.add(debugSphere);
 
-window.addEventListener('mousemove', () => {
-	const point = TH.MouseInput.inMapPosition(game.scene.three.camera, debug.main.three.ground);
-	if (point) {
-		debugSphere.position.set(point.x, point.y, -point.z); // 点击哪里，小红球就跳到哪里
-	}
-});
-
-render()
-
 game.startTick();
 
 game.startRender();
+
+// const scene = game.scene.three.scene;
+// const renderer = game.scene.three.renderer;
+
+// // 平面
+// const plane = new THREE.Mesh(
+// 	new THREE.PlaneGeometry(10, 10),
+// 	new THREE.MeshBasicMaterial({
+// 		color: 0xffffff,
+// 		side: THREE.DoubleSide,
+// 		wireframe: true
+// 	})
+// );
+
+// scene.add(plane);
+
+// // Raycaster
+// const raycaster = new THREE.Raycaster();
+// const mouse = new THREE.Vector2();
+
+// // 点击事件
+// renderer.domElement.addEventListener("pointerdown", (event) => {
+
+// 	const rect = renderer.domElement.getBoundingClientRect();
+
+// 	// 屏幕坐标 -> NDC
+// 	mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+// 	mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+// 	// 发射射线
+// 	raycaster.setFromCamera(mouse, game.scene.currentCamera);
+
+// 	// 检测平面
+// 	const intersects = raycaster.intersectObject(plane);
+
+// 	if (intersects.length === 0) return;
+
+// 	const hit = intersects[0];
+
+// 	// 创建小球
+// 	const sphere = new THREE.Mesh(
+// 		new THREE.SphereGeometry(0.15, 16, 16),
+// 		new THREE.MeshBasicMaterial({
+// 			color: 0xff0000
+// 		})
+// 	);
+
+// 	// 放到点击位置
+// 	sphere.position.copy(hit.point);
+
+// 	// 加入场景
+// 	scene.add(sphere);
+
+// 	console.log("uv:", hit.uv);
+// });

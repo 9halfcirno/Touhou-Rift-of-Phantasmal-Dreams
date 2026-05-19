@@ -1,6 +1,7 @@
 import {
 	GameObject2D
 } from "./game_object_2d.js"
+import { GameObject } from "./game_object.js";
 import {
 	TextureLoader
 } from "../loaders/texture_loader.js";
@@ -13,11 +14,12 @@ import {
 import { Position, Vector2, Vector3 } from "../position.js";
 import * as THREE from "../../libs/three-0.171.0/build/three.module.js"
 import { Component } from "../entity_components/component.js";
+import { EntityManager } from "../managers/entity_manager.js";
 
 class Entity extends GameObject2D {
 	constructor(thid = "th:entity=null", manager, params = {}) {
 
-		let def = manager.entityDefinitions.get(thid);
+		let def = EntityManager.entityDefinitions.get(thid);
 		if (!def) throw new Error(`[Entity] 未注册的实体: ${thid}`);
 
 		let mat = params.material || new THREE.MeshLambertMaterial({
@@ -79,11 +81,12 @@ class Entity extends GameObject2D {
 
 	/**
 	 * 
-	 * @param {THREE.Vector3} dir 移动方向
+	 * @param {number} dis 移动距离
 	 * @returns 
 	 */
-	step() {
-		const speed = this.components.get("th:speed")?.value;
+	step(dis) {
+		let speed = dis || this.components.get("th:speed")?.value;
+		
 		if (!speed) return;
 		const yaw = this.rotation.x;
 		const pitch = this.rotation.y;
@@ -234,7 +237,7 @@ class Entity extends GameObject2D {
 	}
 
 	loadAllComponents() {
-		let def = this.manager.entityDefinitions.get(this.thid);
+		let def = EntityManager.entityDefinitions.get(this.thid);
 		if (!def) throw new Error(`[Entity] 未注册的实体: ${this.thid}`);
 		if (!def.components) return;
 		for (let [type, data] of Object.entries(def.components)) {

@@ -6,10 +6,10 @@ class GameObject2D extends GameObject {
     constructor(params = {}) {
         let geo = GameObject2D.SharedPlaneGeometry;
         let mat = params.material;
-        
+
         let mesh = new THREE.Mesh(geo, mat);
 
-        super({ mesh, ...params})
+        super({ mesh, ...params })
         this.three.geometry = geo;
         this.three.material = mat;
 
@@ -26,14 +26,16 @@ class GameObject2D extends GameObject {
     }
 
     updateThreeData(p = 1) {
+        if (this.three.destory) return;
+
         super.updateThreeData(p);
         this._fixThreePosition();
         this.three.mesh.rotation.set(Config["object2d_tilt"], 0, 0); // 2D对象只需要倾斜角度
     }
 
     _resizeMeshByTexture() { // 应该考虑repeat
-        if (this.isCustomMesh) return;
-
+        if (this.three.destory) return;
+        
         let tex = this.three.material?.map;
         if (!tex || !tex.image) return;
         const img = tex.image;
@@ -45,7 +47,7 @@ class GameObject2D extends GameObject {
     }
 
     _fixThreePosition() { // 修正网格位置
-        if (this.isCustomMesh) return;
+        if (this.three.destory) return;
 
         if (this.three.material?.map?.image) {
             let tex = this.three.material.map;
@@ -54,6 +56,11 @@ class GameObject2D extends GameObject {
             this.three.mesh.position.y += Math.cos(tilt) * height / 2;
             this.three.mesh.position.z += Math.sin(tilt) * height / 2;
         }
+    }
+
+    _disposeThree() {
+        this.three.material.dispose();
+        super._disposeThree();
     }
 }
 

@@ -1,14 +1,19 @@
-import {GameObject} from "../game_object/game_object.js";
-import {Controller} from "./controller.js"
+import { Controller } from "./controller.js"
+import { EntityManager } from "../managers/entity_manager.js";
+import { Entity } from "../game_object/game_entity.js";
+
 
 class EntityController extends Controller {
 	/**
 	 *
-	 * @param {GameObject} object 被控制的实体
+	 * @param {Entity} e 被控制的实体
 	 */
-	constructor(object) {
-		if (!(object instanceof GameObject)) throw new Error("EntityController仅接收GameObject实例");
-		super(object);
+	constructor(e) {
+		if (typeof e === "string") {
+			e = EntityManager.getEntity(e);
+		}
+		if (!(e instanceof Entity)) throw new Error("EntityController仅接收Entity实例");
+		super(e);
 	}
 
 	update() {

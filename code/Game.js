@@ -4,8 +4,8 @@ import * as TH from "./module_all.js"
 globalThis.GAME_CONFIG = { // 总配置
     RUN_PATH: document.location.href.slice(0, document.location.href.lastIndexOf("/")),
     CANVAS_ID: "game-canvas",
-    STAGE_ASPECT: window.innerWidth / window.innerHeight,
-    // STAGE_ASPECT: 16 / 9,
+    // STAGE_ASPECT: window.innerWidth / window.innerHeight,
+    STAGE_ASPECT: 16 / 9,
     STAGE_WIDTH: Math.min(window.innerWidth),
     STAGE_HEIGHT: Math.min(window.innerWidth * (9 / 16), window.innerHeight)
 }
@@ -36,18 +36,31 @@ export default class Game {
         this.TickSystem = new TH.TickSystem();
         this.RenderSystem = new TH.RenderSystem();
 
+        this.domElement = (() => {
+            let div = document.createElement("div");
+            div.id = `THGame:${Date.now()}`;
+            div.append(this.scene.domElement);
+            return div;
+        })();
+
         this._tickFunc = [];
+        this._renderFunc = [];
 
         this.TickSystem.update = () => {
             this.tick();
         }
 
         this.RenderSystem.update = () => {
-            this.scene.render({ progress: this.TickSystem.tickP });
+            this.render();
         }
 
         this._preventWebDefaultAction();
 
+    }
+
+    run() {
+        this.startRender();
+        this.startTick();
     }
 
     startTick() {
@@ -55,8 +68,7 @@ export default class Game {
     }
 
     tick() {
-        this.scene.update();
-        TH.System.updateAll({ frame: this.TickSystem.frame });
+        this.scene.update({ frame: this.TickSystem.frame });
         for (let index = 0; index < this._tickFunc.length; index++) {
             const f = this._tickFunc[index];
             f?.({ frame: this.TickSystem.frame });
@@ -69,6 +81,18 @@ export default class Game {
 
     startRender() {
         this.RenderSystem.startRender();
+    }
+
+    render() {
+        this.scene.render({ progress: this.TickSystem.tickP });        
+        for (let index = 0; index < this._renderFunc.length; index++) {
+            const f = this._renderFunc[index];
+            f?.({ frame: this.RenderSystem.frame, progress: this.TickSystem.tickP });
+        }
+    }
+
+    addRenderCallback(f) {
+        this._renderFunc.push(f);
     }
 
     exit() {
