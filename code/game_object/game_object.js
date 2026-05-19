@@ -45,10 +45,9 @@ class GameObject {
 	 * @param {Number} x 
 	 * @param {Number} y 
 	 * @param {Number} z 
-	 * @returns {GameObject} 返回this
 	 */
 	setPosition(x, y, z) {
-		if (x === 0 && y === 0 && z === 0) return this;
+		// if (x === 0 && y === 0 && z === 0) return this;
 		this._orginPos.copy(this.position);
 		this.position.set(x, y, z);
 		this.updateThreeData();
@@ -60,6 +59,7 @@ class GameObject {
 	updateThreeData(p = 1) {
 		p = p > 1 ? 1 : p;
 		let mesh = this.three.mesh;
+		if (!mesh) return;
 		mesh.position.set(...this.tweenPosition(p).toTHREE())
 	}
 
@@ -86,7 +86,6 @@ class GameObject {
 	}
 
 	_disposeThree() {
-		this.three.material.dispose();
 		if (!this.three.geometry === GameObject.SharedPlaneGeometry) this.three.geometry.dispose();
 
 		this.inMap?.removeObject?.(this);
