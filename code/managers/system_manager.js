@@ -37,11 +37,11 @@ class SystemManager {
         this.systems.splice(0);
     }
 
-    updateAll({ frame }) {
+    updateAll({ frame, game, world }) {
         for (let i = 0, n = this.systems.length; i < n; i++) {
             const system = this.systems[i];
 
-            system.update({ entities:  system.query.entities, frame });
+            system.update({ entities:  system.query.entities, frame, game, world });
         }
     }
 }

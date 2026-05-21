@@ -12,6 +12,7 @@
 		"th:system=bullet_movement_system",
 		"th:system=max_life_time_system",
 		"th:system=healthy_system",
-		"th:system=healthy_system"
+		"th:system=collision_system",
+		"th:system=player_controls_system"
 	]
 }

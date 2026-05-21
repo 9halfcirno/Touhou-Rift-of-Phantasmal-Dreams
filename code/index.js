@@ -58,33 +58,20 @@ let e2 = game.scene.currentMap.entityManager.createEntity("th:entity=enemy/fairy
 game.scene.currentMap.addEntity(entity)
 game.scene.currentMap.addObject(e2)
 
-let ctrl = new TH.PlayerController(entity, game.scene.three.camera)
-
 TH.KeyboardInput.onKey("q", () => {
 	game.scene.switchToGameMap(debug.main === game.scene.currentMap ? debug.seb : debug.main)
 })
 
+
 game.addTickCallback(() => {	
-	ctrl.update();
+	// ctrl.update();
 	statsTps.update();
-	if (TH.MouseInput.left) {
-		let mousePos = TH.MouseInput.inMapPosition(game.scene.currentCamera, debug.main.three.ground);
-		let j = Math.random() * 2 - 1;
-		let e = game.scene.currentMap.entityManager.createEntity("th:entity=bullet/ball", {
-			position: entity.position,
-			rotation: new TH.Vector2(1, 0),
-			frame: game.TickSystem.frame
-		});
-		// entity.moveTo(...mousePos)
-		e.faceTo(mousePos)
-		//e._disposeThree();
-		game.scene.currentMap.addObject(e);
-	}
+	
 	const point = TH.MouseInput.inMapPosition(game.scene.currentCamera, debug.main.three.ground);
 	if (point) {
 		debugSphere.position.set(point.x, point.y, -point.z); // 点击哪里，小红球就跳到哪里
 	}
-	debugdiv.innerHTML = `player x: ${ctrl.target.position.x}, y: ${ctrl.target.position.y}, z: ${ctrl.target.position.z}
+	debugdiv.innerHTML = `player x: ${entity.position.x}, y: ${entity.position.y}, z: ${entity.position.z}
 </br>player hp: ${entity.getComponentValue("th:hp")}
 </br>entity count: ${game.scene.currentMap.entityManager.getAllEntities().length}
 </br>frame: ${game.scene.currentMap.frame}
@@ -95,9 +82,6 @@ game.addTickCallback(() => {
 })
 
 game.addRenderCallback(() => {
-	ctrl.onRender({
-		progress: game.TickSystem.tickP
-	});
 	statsFps.update();
 })
 
@@ -118,11 +102,6 @@ TH.KeyboardInput.onKey("z", () => {
 
 TH.MouseInput.onWheel((wheel) => {
 	if (game.scene.three.camera === game.scene.currentCamera) TH.Config["camera_distance"] += wheel.y * 0.01;
-})
-
-TH.KeyboardInput.onKey("Tab", (tab) => {
-	if (tab.repeat) return;
-	ctrl.setTarget(ctrl.target === e2 ? entity : e2);
 })
 
 // // 调试球

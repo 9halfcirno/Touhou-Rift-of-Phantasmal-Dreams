@@ -30,7 +30,7 @@ class GameObject2D extends GameObject {
 
         super.updateThreeData(p);
         this._fixThreePosition();
-        this.three.mesh.rotation.set(Config["object2d_tilt"], 0, 0); // 2D对象只需要倾斜角度
+        this.three.object3d.rotation.set(Config["object2d_tilt"], 0, 0); // 2D对象只需要倾斜角度
     }
 
     _resizeMeshByTexture() { // 应该考虑repeat
@@ -43,7 +43,7 @@ class GameObject2D extends GameObject {
         const width = img.width * tex.repeat.x / unit;
         const height = img.height * tex.repeat.y / unit;
         // 调整 mesh 的缩放
-        this.three.mesh.scale.set(width, height, 1);
+        this.three.object3d.scale.set(width, height, 1);
     }
 
     _fixThreePosition() { // 修正网格位置
@@ -53,8 +53,8 @@ class GameObject2D extends GameObject {
             let tex = this.three.material.map;
             const height = tex.image.height * tex.repeat.y / tex.userData.pixelsPerUnit;
             let tilt = Config["object2d_tilt"];
-            this.three.mesh.position.y += Math.cos(tilt) * height / 2;
-            this.three.mesh.position.z += Math.sin(tilt) * height / 2;
+            this.three.object3d.position.y += Math.cos(tilt) * height / 2;
+            this.three.object3d.position.z += Math.sin(tilt) * height / 2;
         }
     }
 

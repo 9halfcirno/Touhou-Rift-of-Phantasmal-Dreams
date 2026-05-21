@@ -17,15 +17,16 @@ import {
 class GameObject {
 	/**
 	 * 创建一个GameObject对象
-	 * @param {Object} params 这个对象应该包含material, geometry
+	 * @param {Object} params 这个对象应该包含THREE.Mesh
 	 */
 	constructor(params = {}) {
 		this.three = {
-			mesh: params.mesh,
+			object3d: params.object3d || params.mesh || null,
 		};
 
 		this.position = params.position?.clone?.() || new Position();
 		this._orginPos = new Position(...this.position); // 用于Threee缓动的坐标
+		this._tweenTargetPos = new Position(...this.position); // 目标坐标
 		// x => yaw (水平旋转)
 		// y => pitch (垂直旋转)
 		this.rotation = params.rotation?.clone?.() || new Vector2(0, 0);
@@ -33,9 +34,11 @@ class GameObject {
 		this.updateThreeData(1);
 
 
-		this.three.mesh.name = this.uuid;
-		this.three.mesh.castShadow = true;
-		this.three.mesh.receiveShadow = true;
+		if (this.three.object3d) {
+			this.three.object3d.name = this.uuid;
+			this.three.object3d.castShadow = true;
+			this.three.object3d.receiveShadow = true;
+		}
 		this.inMap = null;
 		// GameObject.objectsMap.set(this.uuid, this); // 把自己扔对象池
 	}
@@ -47,10 +50,9 @@ class GameObject {
 	 * @param {Number} z 
 	 */
 	setPosition(x, y, z) {
-		// if (x === 0 && y === 0 && z === 0) return this;
 		this._orginPos.copy(this.position);
 		this.position.set(x, y, z);
-		this.updateThreeData();
+		// this.updateThreeData();
 	}
 	/**
 	 * 
@@ -58,9 +60,9 @@ class GameObject {
 	 */
 	updateThreeData(p = 1) {
 		p = p > 1 ? 1 : p;
-		let mesh = this.three.mesh;
-		if (!mesh) return;
-		mesh.position.set(...this.tweenPosition(p).toTHREE())
+		let object3d = this.three.object3d;
+		if (!object3d) return;
+		object3d.position.set(...this.tweenPosition(p).toTHREE())
 	}
 
 	tweenThree(p) {
@@ -76,7 +78,9 @@ class GameObject {
 		const toPos = this.position.toArray();
 		const orgPos = this._orginPos.toArray();
 
-		return new Position(...orgPos.map((pos, i) => pos + (toPos[i] - pos) * p))
+		this._tweenTargetPos.set(...orgPos.map((pos, i) => pos + (toPos[i] - pos) * p))
+
+		return this._tweenTargetPos;
 	}
 
 
@@ -90,7 +94,7 @@ class GameObject {
 
 		this.inMap?.removeObject?.(this);
 
-		this.three.mesh = null; // 移除引用
+		this.three.object3d = null; // 移除引用
 		this.three.destory = true;
 	}
 }
