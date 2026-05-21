@@ -4,14 +4,16 @@
 	"module": "th:model=game_2d",
 
 	"components": {
-		"th:speed": 0.3,
+		"th:speed": 0.5,
 		"th:hp": {
 			"hp": 5,
 			"maxHp": 9
 		},
 		"th:hitbox": {
-			"shape": "circle",
-			"radius": 0.3
-		}
+			"shape": "box",
+			"width": 1.6,
+			"height": 1.6
+		},
+		"th:player_controls": {}
 	}
 }

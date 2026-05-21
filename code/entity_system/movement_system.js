@@ -10,7 +10,7 @@ class MovementSystem extends System {
         super({
             name: "MovementSystem",
             requireComponents: [],
-            priority: 2
+            priority: 4
         });
     }
 

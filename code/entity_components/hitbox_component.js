@@ -3,7 +3,6 @@ import { Component } from "./component.js";
 const SHAPE = {
     CIRCLE: "circle", // 圆形
     BOX: "box",       // 矩形
-    CUSTOM: "custom"  // 自定义
 }
 
 class HitboxComponent extends Component {
@@ -17,8 +16,6 @@ class HitboxComponent extends Component {
             this.width = data.width;
             this.height = data.height
 
-        } else if (data.shape === SHAPE.CUSTOM) { // 自定义
-            this.vertexs = data.vertexs;
         }
     }
 
@@ -30,7 +27,9 @@ class HitboxComponent extends Component {
         }
     }
 
-    set value(data) {}
+    set value(data) {
+        Object.assign(this, data);
+    }
 }
 
 Component.registerComponent("th:hitbox", HitboxComponent)

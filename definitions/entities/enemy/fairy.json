@@ -5,6 +5,11 @@
 
 	"components": {
 		"th:hp": 10,
-		"th:speed": 0.25
+		"th:speed": 0.25,
+		"th:hitbox": {
+			"shape": "box",
+			"width": 1.6,
+			"height": 1.6
+		}
 	}
 }

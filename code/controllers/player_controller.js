@@ -29,9 +29,6 @@ class PlayerController extends EntityController {
 	update(delta) {
 		if (this.camera) {
 
-			// 1. 在开始计算前，备份当前的逻辑位置
-			this.prevCameraLogicPos.copy(this.currCameraLogicPos);
-
 			// 3. 计算相机【瞬时理想目标】
 			
 			const pos = this.target.position.toTHREE().toArray();
@@ -51,17 +48,6 @@ class PlayerController extends EntityController {
 			this.currCameraLogicPos.set(...current.map((p, i) => {
 				return p + (toPos[i] - p) * lerpFactor;
 			}));
-		}
-
-		if (this.target && this.target.isAlive) {
-
-			// 角色移动
-			// 2. 处理角色移动
-			let w = Key.key("w").down, a = Key.key("a").down;
-			let s = Key.key("s").down, d = Key.key("d").down;
-			//let down = Key.key("Shift").down, fly = Key.key(" ").down;
-			let speed = (this.target.getComponentValue("th:speed") || 0.5);
-			this.target.moveBy((d - a) * speed, /* (fly - down) * speed */ 0, (w - s) * speed);
 		}
 	}
 
