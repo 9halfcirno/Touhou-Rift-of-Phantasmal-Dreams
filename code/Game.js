@@ -43,6 +43,10 @@ export default class Game {
             return div;
         })();
 
+
+        this.KeyboardInput = TH.KeyboardInput;
+        this.MouseInput = TH.MouseInput;
+
         this._tickFunc = [];
         this._renderFunc = [];
 
@@ -68,10 +72,10 @@ export default class Game {
     }
 
     tick() {
-        this.scene.update({ frame: this.TickSystem.frame });
+        this.scene.update({ frame: this.TickSystem.frame, game: this });
         for (let index = 0; index < this._tickFunc.length; index++) {
             const f = this._tickFunc[index];
-            f?.({ frame: this.TickSystem.frame });
+            f?.({ frame: this.TickSystem.frame, game: this });
         }
     }
 

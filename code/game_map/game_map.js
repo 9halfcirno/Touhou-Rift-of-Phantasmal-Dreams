@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { ID } from "../parser_thid.js"
 import { GameObject } from "../game_object/game_object.js"
+import { GameCamera } from "../game_object/game_camera.js"
 import { THREEManager } from "../managers/three_manager.js"
 import { Config } from "../config.js"
 import { System } from "../entity_system/system.js"
@@ -15,16 +16,12 @@ class GameMap {
 		};
 		this.three.group.name = `GameMap_${id}`
 		this.three.group.rotation.x = Config["tile_tilt"]
+		this.three.ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
 		this.id = id;
 		this.isInScene = true;
 
 		// 摄像机
-		this.camera = new THREE.PerspectiveCamera(
-			64,
-			GAME_CONFIG.STAGE_ASPECT,
-			0.1,
-			1000
-		);
+		this.camera = new GameCamera();
 
 		// 自己内部的three实例管理
 		this._threeManager = new THREEManager();
@@ -47,9 +44,9 @@ class GameMap {
 		this.three.group.add(axe);
 	}
 
-	update() {
+	update({ game }) {
 		this.frame++;
-		this.systemManager.updateAll({ frame: this.frame });
+		this.systemManager.updateAll({ frame: this.frame, game, world: this });
 	}
 
 	get frame() {
@@ -69,7 +66,7 @@ class GameMap {
 			obj.inMap.removeObject(obj);
 		}
 
-		this._threeManager.add(obj.three.mesh)
+		this._threeManager.add(obj.three.object3d)
 
 		obj.inMap = this; // 在对象中保存Map引用
 
@@ -80,7 +77,7 @@ class GameMap {
 	removeObject(obj) {
 		// 拒绝非GameObject实例
 		if (!(obj instanceof GameObject)) throw new Error(`传入的参数必须是GameObject实例`);
-		this._threeManager.remove(obj.three.mesh)
+		this._threeManager.remove(obj.three.object3d)
 		this.objects.delete(obj.uuid)
 		obj.inMap = null; // 移除引用
 	}
@@ -109,7 +106,8 @@ class GameMap {
 	 * @param {Number} [p=1] 插值，从0到1
 	 *
 	 */
-	tweenThree(p = 1) { // THREE插值
+	tweenThree(p = 1) { // THREE插值		
+		this.camera.tweenThree(p);
 		this.objects.forEach(obj => {
 			obj.tweenThree(p);
 		})

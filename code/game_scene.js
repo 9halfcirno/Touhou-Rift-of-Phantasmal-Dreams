@@ -138,7 +138,7 @@ class GameScene {
 		Key.onKey("Enter", () => {
 			let orPos = this.currentCamera.position;
 			this.debug.controls.enabled = !this.debug.controls.enabled;
-			this.currentCamera = (this.currentCamera === this.debug.camera ? this.three.camera : this.debug.camera);
+			this.currentCamera = (this.currentCamera === this.debug.camera ? this.currentMap.camera.three.camera : this.debug.camera);
 		})
 		window.addEventListener('resize', () => {
 			const maxWidth = window.innerWidth;
@@ -180,9 +180,8 @@ class GameScene {
 		this.three.renderer.render(this.three.scene, this.currentCamera)
 	}
 
-	update({ frame }) {
-		
-		this.currentMap.update({ frame }); // 更新地图
+	update({ frame, game }) {		
+		this.currentMap.update({ frame, game }); // 更新地图
 	}
 
 	/*=== GameMap管理 ===*/
@@ -192,8 +191,7 @@ class GameScene {
 		this.gameMaps.set(map.id, map)
 		if (this.currentMap) map._exitScene(); // 如果当前有地图，则隐藏新地图
 		else {
-			this.currentMap = map;
-			map._enterScene()
+			this.switchToGameMap(map); // 否则直接切换到新地图
 		}
 		// 把map的threeGroup添加进来
 		this.three.scene.add(map.three.group);
@@ -205,6 +203,7 @@ class GameScene {
 		this.currentMap?._exitScene?.();
 		this.currentMap = map;
 		map._enterScene();
+		this.currentCamera = map.camera.three.camera || this.three.camera; // 切换相机
 	}
 	// 移除map
 	removeGameMap(map) {
