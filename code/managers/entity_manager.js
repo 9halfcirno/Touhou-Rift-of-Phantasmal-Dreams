@@ -56,11 +56,11 @@ class EntityManager {
             params
         );
 
-        // 修复原bug
-        this._entityPool.set(ent.uuid, ent);
+        this.addEntity(ent);
+        // this._entityPool.set(ent.uuid, ent);
 
-        // 初始化完成后统一刷新一次Query
-        this.refreshEntityQueries(ent);
+        // // 初始化完成后统一刷新一次Query
+        // this.refreshEntityQueries(ent);
 
         return ent;
     }
@@ -180,6 +180,11 @@ class EntityManager {
         this.refreshEntityQueries(entity);
     }
 
+    addEntity(ent) {
+        this._entityPool.set(ent.uuid, ent);
+        this.refreshEntityQueries(ent);
+    }
+
     getEntity(uuid) {
 
         return this._entityPool.get(uuid);
@@ -199,7 +204,7 @@ class EntityManager {
             query.entities.delete(entity);
         }
 
-        return this._entityPool.delete(ent);
+        return this._entityPool.delete(ent.uuid);
     }
 
     getAllEntities() {

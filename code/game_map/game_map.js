@@ -7,6 +7,7 @@ import { Config } from "../config.js"
 import { System } from "../entity_system/system.js"
 import { EntityManager } from "../managers/entity_manager.js"
 import { SystemManager } from "../managers/system_manager.js"
+import { Entity } from "../game_object/game_entity.js"
 
 class GameMap {
 	#frame = 0;
@@ -32,6 +33,7 @@ class GameMap {
 		this.systemManager = new SystemManager(this);
 
 		this.objects = new Map();
+
 	}
 
 	async init() {
@@ -61,7 +63,7 @@ class GameMap {
 		// 拒绝非GameObject实例
 		if (!(obj instanceof GameObject)) throw new Error(`传入的参数必须是GameObject实例`);
 		if (obj.three.destory) return; // 防止dispose后被添加但没法回收
-
+		
 		if (obj.inMap && obj.inMap !== this) {
 			obj.inMap.removeObject(obj);
 		}
@@ -80,6 +82,9 @@ class GameMap {
 		this._threeManager.remove(obj.three.object3d)
 		this.objects.delete(obj.uuid)
 		obj.inMap = null; // 移除引用
+		if (obj instanceof Entity) {
+			this.entityManager.removeEntity(obj)
+		}
 	}
 
 	clearObjects() {
@@ -88,7 +93,12 @@ class GameMap {
 	}
 
 	addEntity(ent) {
-		this.addObject(ent);
+		// this.addObject(ent);
+		if (ent.manager !== this.entityManager) { // 在不同map的em间流转
+			ent.manager.removeEntity(ent);
+			this.entityManager.addEntity(ent);
+		}
+		this.addObject(ent)
 	}
 
 	_exitScene() { // 离开场景
@@ -136,20 +146,23 @@ class GameMap {
 	}
 
 	destory() {
-		this.three.group.traverse((obj) => {
-			if (obj.isMesh) {
-				if (obj.material) {
-					Array.isArray(obj.material) ? obj.material.forEach((m) => m.dispose()) : obj.material.dispose();
-				}
-				if (obj.geometry) {
-					obj.geometry.dispose();
-				}
-			}
+		this.entityManager.getAllEntities().forEach(e => {
+			this.entityManager.removeEntity(e);
 		})
-		this.three.group.removeFromParent();
-		this.three.group = null;
+		// this.three.group.traverse((obj) => {
+		// 	if (obj.isMesh) {
+		// 		if (obj.material) {
+		// 			Array.isArray(obj.material) ? obj.material.forEach((m) => m.dispose()) : obj.material.dispose();
+		// 		}
+		// 		if (obj.geometry) {
+		// 			obj.geometry.dispose();
+		// 		}
+		// 	}
+		// })
+		// this.three.group.removeFromParent();
+		// this.three.group = null;
 
-		this.entityManager.getAllEntities().forEach(e => e.inMap = null)
+		// this.entityManager.getAllEntities().forEach(e => e.inMap = null)
 	}
 }
 
