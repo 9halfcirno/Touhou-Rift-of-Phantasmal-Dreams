@@ -52,7 +52,7 @@ export class CollisionSystem extends System {
         super({
             name: "collision_system",
             requireComponents: ["th:hitbox"],
-            priority: 5
+            priority: 3
         });
     }
 
@@ -100,19 +100,8 @@ export class CollisionSystem extends System {
 
                 const ratio = 0.5;
 
-                // entityA
-                entityA.setPosition(
-                    entityA.position.x - mtv.x * ratio,
-                    entityA.position.y,
-                    entityA.position.z - mtv.y * ratio
-                );
-
-                // entityB
-                entityB.setPosition(
-                    entityB.position.x + mtv.x * ratio,
-                    entityB.position.y,
-                    entityB.position.z + mtv.y * ratio
-                );
+                entityA.moveBy(-mtv.x * ratio, 0, -mtv.y * ratio);
+                entityB.moveBy(mtv.x * ratio, 0, mtv.y * ratio);
 
                 // ===== 回调 =====
 
