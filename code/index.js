@@ -38,8 +38,6 @@ await debug.seb.init()
 debug.main.$debug()
 game.scene.addGameMap(debug.main)
 game.scene.addGameMap(debug.seb)
-// game.scene.switchToGameMap("th:map=seb")
-
 
 await TH.TextureLoader.load("th:texture=characters")
 await TH.TextureLoader.load("th:texture=entity/reimu")
@@ -57,6 +55,8 @@ debug.entity = entity;
 let e2 = game.scene.currentMap.entityManager.createEntity("th:entity=enemy/fairy")
 game.scene.currentMap.addEntity(entity)
 game.scene.currentMap.addObject(e2)
+
+debug.seb.addEntity(entity)
 
 TH.KeyboardInput.onKey("q", () => {
 	game.scene.switchToGameMap(debug.main === game.scene.currentMap ? debug.seb : debug.main)
@@ -86,12 +86,12 @@ game.addRenderCallback(() => {
 })
 
 TH.KeyboardInput.onKey(" ", (e) => {
-	entity.faceTo(TH.MouseInput.inMapPosition(game.scene.currentCamera, debug.main.three.ground));
-	entity.step(5)
+	
 })
 
 TH.KeyboardInput.onKey("r", () => {
 	game.scene.removeGameMap(debug.main)
+	debug.main.destory();
 })
 
 

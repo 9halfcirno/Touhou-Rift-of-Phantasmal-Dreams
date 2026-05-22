@@ -12,7 +12,6 @@ class BulletMovementSystem extends System {
     update({ entities }) {
         for (const entity of entities) {
             entity.step()
-
         }
     }
 }

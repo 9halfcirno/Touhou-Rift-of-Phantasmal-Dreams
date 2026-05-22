@@ -18,6 +18,9 @@ class GameScene {
 		// 游戏场景都渲染在这里
 		this.three = {
 			scene: new THREE.Scene(), // three三元素
+			/**
+			 * @deprecated 应使用this.currentCamera替代
+			 */
 			camera: new THREE.PerspectiveCamera(
 				60,
 				args.width / args.height,
@@ -127,10 +130,7 @@ class GameScene {
 			1000);
 		this.debug.controls = new OrbitControls(this.debug.camera, this.domElement);
 
-		this.debug.camHelper = new THREE.CameraHelper(this.three.camera);
 		this.debug.controls.enabled = false;
-
-		this.three.scene.add(this.debug.camHelper);
 
 		this.debug.camera.position.set(2, 2, 2)
 		// this.currentCamera = this.debug.camera;
@@ -162,8 +162,10 @@ class GameScene {
 	}
 
 	refreshThreeArgs(args = {}) {
-		this.three.camera.aspect = args.aspect || args.width / args.height;
-		this.three.camera.updateProjectionMatrix();
+		// this.three.camera.aspect = args.aspect || args.width / args.height;
+		// this.three.camera.updateProjectionMatrix();
+		this.currentCamera.aspect = args.aspect || args.width / args.height;
+		this.currentCamera.updateProjectionMatrix();
 		this.three.renderer.setSize(args.width, args.height);
 	}
 
@@ -175,7 +177,6 @@ class GameScene {
 
 		this._updateLightPosition();
 		this.debug?.controls?.update?.();
-		this.debug?.camHelper?.update?.();
 
 		this.three.renderer.render(this.three.scene, this.currentCamera)
 	}
@@ -200,6 +201,9 @@ class GameScene {
 	switchToGameMap(map) {
 		if (map === this.currentMap) return;
 		if (typeof map === "string") map = this.gameMaps.get(map);
+		if (!map) {
+			console.warn(`[GameScene] 尝试切换到不存在的GameMap: "${map}"`);
+		}
 		this.currentMap?._exitScene?.();
 		this.currentMap = map;
 		map._enterScene();
@@ -209,8 +213,9 @@ class GameScene {
 	removeGameMap(map) {
 		if (map === this.currentMap) {
 			throw new Error(`无法移除当前载入的地图`);
-		};
+		};		
 		map = this.gameMaps.get(map.id);
+		if (!map) return;
 		this.gameMaps.delete(map.id);
 		map?._exitScene?.();
 		this.three.scene.remove(map.three.group)
