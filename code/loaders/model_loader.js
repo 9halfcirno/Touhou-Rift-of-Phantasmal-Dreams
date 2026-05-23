@@ -9,11 +9,13 @@ const ModelManager = {
     _parseModelUrl(thid) {
     },
     // 加载纹理的方法，可用await
-    load(thid, opts = {
-        useCache: true
-    }) {
+    load(thid, opts = { useCache: true }) {
+        let url = this._parseTextureUrl(thid);
+        if (!url) return;
+
+        let self = this;
         return new Promise((resolve, reject) => {
-            return ModelManager.Loaders.MMDLoader.load()
+            
         })
     },
     async get(thid) {

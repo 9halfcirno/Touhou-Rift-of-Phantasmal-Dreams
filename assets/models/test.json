@@ -3,7 +3,14 @@
 	"model_type": "th_model",
 	"data": [
 		{
-			"geometry": "cube"
+			"geometry": {
+				"type": "THREE.BoxGeometry",
+				"args": [1, 1, 1]
+			},
+			"material": {
+				"type": "THREE.MeshStandardMaterial",
+				"texture": "a.png"
+			}
 		}
 	]
 }
