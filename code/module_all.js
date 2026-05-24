@@ -30,10 +30,6 @@ export { Config } from "./config.js"
 export { KeyboardInput } from "./inputs/keyboard.js"
 export { MouseInput } from "./inputs/mouse.js"
 
-// 控制器
-export { EntityController } from "./controllers/entity_controller.js"
-export { PlayerController } from "./controllers/player_controller.js"
-
 // ECS组件
 export { Component } from "./entity_components/component.js"
 export { HealthyComponent } from "./entity_components/healthy_component.js"
