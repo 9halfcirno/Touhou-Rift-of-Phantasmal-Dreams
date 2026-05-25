@@ -73,7 +73,7 @@ class EntityManager {
             await (await fetch(url)).json();
 
         this.entityDefinitions.set(
-            entity.thid,
+            entity.id,
             entity
         );
 

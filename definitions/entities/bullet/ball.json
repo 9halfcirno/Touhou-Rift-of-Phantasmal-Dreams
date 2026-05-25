@@ -1,5 +1,5 @@
 {
-	"thid": "th:entity=bullet/ball",
+	"id": "th:entity=bullet/ball",
 	"texture": "th:texture=bullet/小玉",
 
 	"components": {

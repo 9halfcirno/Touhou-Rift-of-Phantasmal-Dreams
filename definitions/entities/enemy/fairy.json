@@ -1,5 +1,5 @@
 {
-	"thid": "th:entity=enemy/fairy",
+	"id": "th:entity=enemy/fairy",
 	"texture": "th:texture=entity/fairy",
 	"module": "th:model=game_2d",
 
@@ -10,7 +10,6 @@
 			"shape": "box",
 			"width": 1.6,
 			"height": 1.6
-		},
-		"th:player_controls": {}
+		}
 	}
 }

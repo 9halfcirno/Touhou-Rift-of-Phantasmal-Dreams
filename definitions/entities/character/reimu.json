@@ -1,5 +1,5 @@
 {
-	"thid": "th:entity=character/reimu",
+	"id": "th:entity=character/reimu",
 	"texture": "th:texture=entity/reimu",
 	"module": "th:model=game_2d",
 
