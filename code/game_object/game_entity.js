@@ -1,18 +1,11 @@
-import {
-	GameObject2D
-} from "./game_object_2d.js"
+import { GameObject2D } from "./game_object_2d.js"
 import { GameObject } from "./game_object.js";
-import {
-	TextureLoader
-} from "../loaders/texture_loader.js";
-import {
-	ID
-} from "../parser_thid.js"
-import {
-	Config
-} from "../config.js";
+import { TextureLoader } from "../loaders/texture_loader.js";
+import { Texture } from "../game_texture/texture.js";
+import { ID } from "../parser_thid.js"
+import { Config } from "../config.js";
 import { Position, Vector2, Vector3 } from "../position.js";
-import * as THREE from "../../libs/three-0.171.0/build/three.module.js"
+import * as THREE from "three";
 import { Component } from "../entity_components/component.js";
 import { EntityManager } from "../managers/entity_manager.js";
 
@@ -27,10 +20,8 @@ class Entity extends GameObject2D {
 			transparent: true, // 使纹理透明
 			alphaTest: true // 防止透明像素遮挡后方
 		});
-		let tex = mat.map || TextureLoader.get(def.texture, { shared: true });
-		//let geo = new THREE.PlaneGeometry(1, 1);
-
-		mat.map = tex;
+		
+		// mat.map = tex;
 		super({
 			material: mat,
 			rotation: new Vector2(), // Config["object2d_tilt"],
@@ -38,6 +29,9 @@ class Entity extends GameObject2D {
 		})
 		this.thid = thid;
 		this.manager = manager;
+
+		let tex = mat.map || TextureLoader.get(def.texture, { shared: true });
+		this.texture = new Texture(tex);
 
 		this.isAlive = true;
 		this.spawnTime = params.frame || 0;
@@ -86,7 +80,7 @@ class Entity extends GameObject2D {
 	 */
 	step(dis) {
 		let speed = dis || this.components.get("th:speed")?.value;
-		
+
 		if (!speed) return;
 		const yaw = this.rotation.x;
 		const pitch = this.rotation.y;

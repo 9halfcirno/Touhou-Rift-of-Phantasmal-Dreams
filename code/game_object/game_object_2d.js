@@ -1,10 +1,11 @@
 import { GameObject } from "./game_object.js";
 import * as THREE from "three";
 import { Config } from "../config.js";
+import { Texture } from "../game_texture/texture.js";
 
 class GameObject2D extends GameObject {
     constructor(params = {}) {
-        let geo = GameObject2D.SharedPlaneGeometry;
+        let geo = params.geometry || GameObject2D.SharedPlaneGeometry;
         let mat = params.material;
 
         let mesh = new THREE.Mesh(geo, mat);
@@ -13,11 +14,10 @@ class GameObject2D extends GameObject {
         this.three.geometry = geo;
         this.three.material = mat;
 
+        this._texture = null;
+
 
         this._resizeMeshByTexture();
-
-        this.texture = this.three.material.map; // 保存引用		
-
     }
 
     setPosition(...args) {
@@ -35,13 +35,13 @@ class GameObject2D extends GameObject {
 
     _resizeMeshByTexture() { // 应该考虑repeat
         if (this.three.destory) return;
+        if (!this.texture) return;
         
-        let tex = this.three.material?.map;
-        if (!tex || !tex.image) return;
-        const img = tex.image;
-        const unit = tex.userData.pixelsPerUnit; // 16像素 = 1单位
-        const width = img.width * tex.repeat.x / unit;
-        const height = img.height * tex.repeat.y / unit;
+        let tex = this.texture;
+
+        const unit = tex.pixelsPerUnit; // 16像素 = 1单位
+        const width = tex.width * tex.repeat.x / unit;
+        const height = tex.height * tex.repeat.y / unit;
         // 调整 mesh 的缩放
         this.three.object3d.scale.set(width, height, 1);
     }
@@ -49,17 +49,35 @@ class GameObject2D extends GameObject {
     _fixThreePosition() { // 修正网格位置
         if (this.three.destory) return;
 
-        if (this.three.material?.map?.image) {
-            let tex = this.three.material.map;
-            const height = tex.image.height * tex.repeat.y / tex.userData.pixelsPerUnit;
+        if (this.texture) {
+            let tex = this.texture;
+            const height = tex.height * tex.repeat.y / tex.pixelsPerUnit;
             let tilt = Config["object2d_tilt"];
             this.three.object3d.position.y += Math.cos(tilt) * height / 2;
             this.three.object3d.position.z += Math.sin(tilt) * height / 2;
         }
     }
 
+    get texture() {
+        return this._texture;
+    }
+
+    set texture(tex) {
+        if (this.three.destory) return; // 已销毁的对象不处理
+
+        if (tex instanceof THREE.Texture) {
+            this.three.material.map = tex;
+        } else if (tex instanceof Texture) {
+            this.three.material.map = tex.three.texture;
+        }
+        this._texture = tex;
+
+        this._resizeMeshByTexture();
+    }
+
     _disposeThree() {
         this.three.material.dispose();
+        this.texture?.dispose();
         super._disposeThree();
     }
 }

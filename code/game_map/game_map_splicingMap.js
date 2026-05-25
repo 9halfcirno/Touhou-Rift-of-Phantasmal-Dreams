@@ -34,7 +34,7 @@ class GameSplicingMap extends GameMap {
 				alphaTest: true // 防止透明像素遮挡后方
 			});
 			let tex = await TextureLoader.get(block.texture, {async: true})
-			mat.map = tex;
+			mat.map = tex.three.texture;
 			let mesh = new THREE.Mesh(geo, mat);
 			mesh.receiveShadow = true;
 			let [x, y] = block.position;
