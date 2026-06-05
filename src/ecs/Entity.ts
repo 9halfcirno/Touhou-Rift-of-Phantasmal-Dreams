@@ -4,6 +4,7 @@ import { Texture } from '../graphics/Texture.js';
 import { TextureLoader } from '../graphics/TextureLoader.js';
 import { Component } from './Component.js';
 import { EntityManager } from './EntityManager.js';
+import { THID } from '../resources/THID.js';
 import { Position, Vector2, Vector3 } from '../math/Position.js';
 import type { ComponentType, EntityDefinition } from '../core/types.js';
 
@@ -30,6 +31,22 @@ export class Entity extends GameObject2D {
 
   /** 组件映射（type → Component） */
   readonly components = new Map<string, Component>();
+
+  /** 注册实体定义 */
+  static async register(thid: string): Promise<EntityDefinition> {
+    const parsed = THID.parse(thid);
+    if (parsed.type !== 'entity') {
+      throw new Error(`[Entity] 错误的thid类型: ${thid}`);
+    }
+
+    const runPath = (globalThis as Record<string, unknown>).GAME_CONFIG_RUN_PATH || '';
+    const url = `${runPath}/definitions/entities/${parsed.id}.json`;
+
+    const entity = (await (await fetch(url)).json()) as EntityDefinition;
+    EntityManager.entityDefinitions.set(entity.id, entity);
+
+    return entity;
+  }
 
   /** 移动向量（由移动系统消费后清零） */
   readonly movementVector = new Vector3(0, 0, 0);
