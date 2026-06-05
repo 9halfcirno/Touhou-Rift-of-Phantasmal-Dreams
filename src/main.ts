@@ -157,7 +157,7 @@ async function init() {
 
   // 13. 启动
   game.run();
-  console.log('☯️ 東方幻夢鄉 ~Touhou Rift of Phantasmal Dreams~');
+  console.log('☯️ 东方幻梦裂隙 ~Touhou Rift of Phantasmal Dreams~');
 }
 
 init().catch(console.error);
