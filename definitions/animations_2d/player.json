@@ -1,0 +1,27 @@
+{
+    "id": "th:animation=player",
+
+    "sheet": {
+        "frame_width": 18,
+        "frame_height": 26,
+        "rows": 3,
+        "columns": 4,
+        "frame_count": 12,
+        "spacing_x": 14,
+        "spacing_y": 6
+    },
+
+    "clips": {
+        "idle": {
+            "interval": 3,
+            "directions": {
+                "down": [0],
+                "left": [3],
+                "right": [6],
+                "up": [9]
+            },
+            "loop": false,
+            "next": null
+        }
+    }
+}

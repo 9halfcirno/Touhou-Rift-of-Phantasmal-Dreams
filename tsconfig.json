@@ -1,0 +1,57 @@
+{
+  "compilerOptions": {
+    /* 编译目标 */
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    /* 严格模式 —— 第一阶段全开 */
+    "strict": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false,
+
+    /* 模块 */
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
+    /* JSX（暂不用，预留） */
+    "jsx": "preserve",
+
+    /* 路径别名 —— 与 vite.config.ts 保持一致
+       moduleResolution: "bundler" 下 paths 以 tsconfig.json 目录为隐式基准 */
+    "paths": {
+      "@/*": ["./src/*"],
+      "@core/*": ["./src/core/*"],
+      "@ecs/*": ["./src/ecs/*"],
+      "@components/*": ["./src/components/*"],
+      "@systems/*": ["./src/systems/*"],
+      "@objects/*": ["./src/objects/*"],
+      "@map/*": ["./src/map/*"],
+      "@graphics/*": ["./src/graphics/*"],
+      "@input/*": ["./src/input/*"],
+      "@math/*": ["./src/math/*"],
+      "@resources/*": ["./src/resources/*"],
+      "@managers/*": ["./src/managers/*"],
+      "@animation/*": ["./src/animation/*"],
+      "@utils/*": ["./src/utils/*"]
+    },
+
+    /* 声明文件 */
+    "types": [],
+
+    /* 跳过库检查 */
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
