@@ -11,7 +11,8 @@
 		"th:max_life_time": 200,
 		"th:hitbox": {
 			"shape": "circle",
-			"r": 0.4
+			"r": 0.4,
+			"group": 1
 		}
 	}
 }

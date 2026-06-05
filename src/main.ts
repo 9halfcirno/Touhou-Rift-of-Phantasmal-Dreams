@@ -80,9 +80,9 @@ async function init() {
   await TH.TextureLoader.load('th:texture=entity/fairy');
 
   // 4. 注册实体定义
-  await TH.EntityManager.registerEntity('th:entity=bullet/ball');
-  await TH.EntityManager.registerEntity('th:entity=character/reimu');
-  await TH.EntityManager.registerEntity('th:entity=enemy/fairy');
+  await TH.Entity.register('th:entity=bullet/ball');
+  await TH.Entity.register('th:entity=character/reimu');
+  await TH.Entity.register('th:entity=enemy/fairy');
 
   // 5. 创建玩家实体
   const entity = game.scene.currentMap!.entityManager.createEntity(

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { System } from '../ecs/System.js';
 import { Config } from '../core/Config.js';
-import { MouseInput } from '../input/MouseInput.js';
 import type { SystemUpdateContext } from '../core/types.js';
 
 /**
@@ -20,17 +19,13 @@ export class PlayerControlsSystem extends System {
 
   override update(ctx: SystemUpdateContext): void {
     const { entities, game, world } = ctx;
-    const g = game as {
-      KeyboardInput: { key: (k: string) => { down: boolean } };
-      MouseInput: { left: boolean; inMapPosition: (cam: THREE.PerspectiveCamera, plane: unknown) => THREE.Vector3 | null };
-      scene: { currentCamera: THREE.PerspectiveCamera };
-    };
-    const Key = g.KeyboardInput;
+    const input = game.KeyboardInput;
+    const mouse = game.MouseInput;
 
-    const w = Key.key('w').down;
-    const a = Key.key('a').down;
-    const s = Key.key('s').down;
-    const d = Key.key('d').down;
+    const w = input.key('w').down;
+    const a = input.key('a').down;
+    const s = input.key('s').down;
+    const d = input.key('d').down;
 
     const entityList = [...entities] as unknown as Array<{
       position: { x: number; y: number; z: number };
@@ -47,9 +42,9 @@ export class PlayerControlsSystem extends System {
       const dz = (w ? 1 : 0) - (s ? 1 : 0);
       entity.moveBy(dx * speed, 0, dz * speed);
 
-      if (Key.key(' ').down) {
-        const mousePos = g.MouseInput.inMapPosition(
-          g.scene.currentCamera,
+      if (input.key(' ').down) {
+        const mousePos = mouse.inMapPosition(
+          game.scene.currentCamera,
           (world as { three: { ground: THREE.Plane } }).three.ground,
         );
         if (mousePos) {
@@ -58,9 +53,9 @@ export class PlayerControlsSystem extends System {
         }
       }
 
-      if (g.MouseInput.left) {
-        const mousePos = g.MouseInput.inMapPosition(
-          g.scene.currentCamera,
+      if (mouse.left) {
+        const mousePos = mouse.inMapPosition(
+          game.scene.currentCamera,
           (world as { three: { ground: THREE.Plane } }).three.ground,
         );
         if (mousePos) {

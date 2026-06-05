@@ -11,11 +11,15 @@ import './HitboxComponent.js';
 import './MaxLifeTimeComponent.js';
 import './FamilyComponent.js';
 import './PlayerControlsComponent.js';
+import './BulletComponent.js';
 
 // 类型导出
 export { HealthyComponent } from './HealthyComponent.js';
+export type { HealthData } from './HealthyComponent.js';
 export { SpeedComponent } from './SpeedComponent.js';
 export { HitboxComponent } from './HitboxComponent.js';
+export type { HitboxData, HitboxCircle, HitboxBox } from './HitboxComponent.js';
 export { MaxLifeTimeComponent } from './MaxLifeTimeComponent.js';
 export { FamilyComponent } from './FamilyComponent.js';
 export { PlayerControlsComponent } from './PlayerControlsComponent.js';
+export { BulletComponent } from './BulletComponent.js';

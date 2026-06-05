@@ -43,6 +43,9 @@ export class CollisionSystem extends System {
         const shapeB = buildShape(entityB, hitboxB);
         if (!shapeB) continue;
 
+        // 同碰撞组（非零）的实体之间不进行碰撞检测
+        if (hitboxA.group !== 0 && hitboxA.group === hitboxB.group) continue;
+
         const result = SAT(shapeA, shapeB);
         if (!result.intersects || !result.mtv) continue;
 

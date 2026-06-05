@@ -19,10 +19,6 @@ export type {
   ParsedTHID,
   ComponentType,
   ComponentTypeMap,
-  HitboxData,
-  HitboxCircle,
-  HitboxBox,
-  HealthData,
   EntityDefinition,
   GameMapDefinition,
   SplicingBlock,
@@ -31,6 +27,12 @@ export type {
   CollisionResult,
   CollisionShape,
 } from './core/types.js';
+export type {
+  HitboxData,
+  HitboxCircle,
+  HitboxBox,
+} from './components/HitboxComponent.js';
+export type { HealthData } from './components/HealthyComponent.js';
 
 // ─── 资源 ───────────────────────────────────────
 export { THID } from './resources/THID.js';
@@ -69,6 +71,7 @@ export {
   MaxLifeTimeComponent,
   FamilyComponent,
   PlayerControlsComponent,
+  BulletComponent,
 } from './components/index.js';
 
 // ─── 系统 ───────────────────────────────────────

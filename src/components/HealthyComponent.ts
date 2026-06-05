@@ -1,5 +1,10 @@
 import { Component } from '../ecs/Component.js';
-import type { HealthData } from '../core/types.js';
+
+/** 生命值数据 */
+export interface HealthData {
+  hp: number;
+  maxHp: number;
+}
 
 /**
  * 生命值组件
@@ -40,3 +45,10 @@ export class HealthyComponent extends Component<number> {
 }
 
 Component.register('th:hp', HealthyComponent as unknown as new (data: unknown) => Component<unknown>);
+
+// ─── Module Augmentation: 向 ComponentTypeMap 注入本组件类型 ──
+declare module '../core/types.js' {
+  interface ComponentTypeMap {
+    'th:hp': number;
+  }
+}

@@ -24,3 +24,10 @@ Component.register(
   'th:player_controls',
   PlayerControlsComponent as unknown as new (data: unknown) => Component<unknown>,
 );
+
+// ─── Module Augmentation: 向 ComponentTypeMap 注入本组件类型 ──
+declare module '../core/types.js' {
+  interface ComponentTypeMap {
+    'th:player_controls': Record<string, unknown>;
+  }
+}

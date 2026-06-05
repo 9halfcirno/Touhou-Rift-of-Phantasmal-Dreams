@@ -1,4 +1,6 @@
-libs/
-dev-ts-ver/
 node_modules/
 dist/
+
+# agent config dir
+.deepseek/
+.codewhale/

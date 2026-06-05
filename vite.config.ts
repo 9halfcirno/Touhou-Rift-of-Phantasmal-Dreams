@@ -1,5 +1,8 @@
 import { defineConfig } from 'vite';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   resolve: {
@@ -22,7 +25,7 @@ export default defineConfig({
   },
 
   // 当前目录作为静态资源根，/assets/* 和 /definitions/* 可直访
-  publicDir: '.',
+  publicDir: './src',
 
   server: {
     port: 3000,

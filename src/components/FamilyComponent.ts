@@ -21,3 +21,10 @@ export class FamilyComponent extends Component<string> {
 }
 
 Component.register('th:family', FamilyComponent as unknown as new (data: unknown) => Component<unknown>);
+
+// ─── Module Augmentation: 向 ComponentTypeMap 注入本组件类型 ──
+declare module '../core/types.js' {
+  interface ComponentTypeMap {
+    'th:family': string;
+  }
+}

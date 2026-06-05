@@ -10,6 +10,9 @@
  */
 
 import type * as THREE from 'three';
+import { type Game } from './Game';
+import { type GameMap } from '@/map';
+import { type Entity } from '@/ecs';
 
 // ─── THID ────────────────────────────────────────────
 
@@ -30,46 +33,23 @@ export type GameRotation = THREE.Vector2;
 
 // ─── 组件类型映射 ────────────────────────────────────
 
-/** 命中框 —— 圆形 */
-export interface HitboxCircle {
-  shape: 'circle';
-  r: number;
-}
-
-/** 命中框 —— 矩形 */
-export interface HitboxBox {
-  shape: 'box';
-  width: number;
-  height: number;
-  /** 可选旋转（弧度） */
-  rotation?: number;
-}
-
-export type HitboxData = HitboxCircle | HitboxBox;
-
-/** 生命值数据 */
-export interface HealthData {
-  hp: number;
-  maxHp: number;
-}
-
 /**
- * 组件类型 → 值类型的全局映射。
- * 新增组件时在此添加一行，Entity.getComponent() 即可自动推导。
+ * 组件类型 → 值类型的全局映射（空接口，通过 module augmentation 扩展）。
  *
+ * 各组件文件通过 declare module 向此处注入自己的映射项：
+ *
+ *   declare module '../core/types.js' {
+ *     interface ComponentTypeMap {
+ *       'th:your_component': YourDataType;
+ *     }
+ *   }
+ *
+ * 这样新增组件无需修改本文件，add-on 也能独立注册类型。
  * 所有 key 均使用 "th:" 命名空间前缀。
  */
-export interface ComponentTypeMap {
-  'th:hp':              number;          // value 是 number（当前 hp），构造用 HealthData
-  'th:speed':           number;
-  'th:hitbox':          HitboxData;
-  'th:max_life_time':   number;
-  'th:family':          string;
-  'th:player_controls': Record<string, unknown>;
-  'th:bullet':          number;
-}
+export interface ComponentTypeMap {}
 
-/** 所有已注册的组件类型字符串 */
+/** 所有已注册的组件类型字符串（由 ComponentTypeMap 的 key 联合推导） */
 export type ComponentType = keyof ComponentTypeMap;
 
 // ─── 配置 ────────────────────────────────────────────
@@ -106,13 +86,13 @@ export interface RuntimeConfig {
  */
 export interface SystemUpdateContext {
   /** 匹配当前系统的实体集合（由 EntityQuery 提供） */
-  entities: Set<unknown>;
+  entities: Set<Entity>;
   /** 当前逻辑帧号 */
   frame: number;
   /** 游戏实例（访问输入、场景等） */
-  game: unknown;
+  game: Game;
   /** 当前所属地图 */
-  world: unknown;
+  world: GameMap;
 }
 
 // ─── 实体定义 JSON 结构 ──────────────────────────────
