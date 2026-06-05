@@ -225,7 +225,7 @@ function circlePolygon(circle: CircleShape, poly: PolyShape): SATResult {
   }
 
   // 修正 normal 朝向
-  const centerDir = { x: circle.x - poly.x, y: circle.y - poly.y };
+  const centerDir = { x: poly.x - circle.x, y: poly.y - circle.y };
   if (smallestAxis && dot(centerDir, smallestAxis) < 0) {
     smallestAxis = { x: -smallestAxis.x, y: -smallestAxis.y };
   }
