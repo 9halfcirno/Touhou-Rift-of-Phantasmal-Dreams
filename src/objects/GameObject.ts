@@ -29,6 +29,10 @@ export class GameObject {
   /** 上一帧坐标（用于插值） */
   protected _orginPos: Position;
 
+  clearTweenPos() {
+    this._orginPos.copy(this.position)
+  }
+
   /** 插值目标坐标（缓存，避免每帧 new） */
   private _tweenTargetPos: Position;
 
@@ -42,16 +46,11 @@ export class GameObject {
   /** 唯一标识 */
   readonly uuid: string;
 
+  static SharedBoxMesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial, THREE.Object3DEventMap>;
+
+
   /** 所在 GameMap（由 GameMap.addObject 设置） */
   inMap: unknown = null;
-
-  // ─── 静态共享资源 ─────────────────────────────
-
-  static readonly SharedPlaneGeometry = new THREE.PlaneGeometry(1, 1);
-  static readonly SharedBoxMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial(),
-  );
 
   // ─── 构造函数 ─────────────────────────────────
 
@@ -135,7 +134,7 @@ export class GameObject {
   // ─── 销毁 ─────────────────────────────────────
 
   protected _disposeThree(): void {
-    if (this.three.geometry && this.three.geometry !== GameObject.SharedPlaneGeometry) {
+    if (this.three.geometry && !this.three.geometry.userData.shared) {
       this.three.geometry.dispose();
     }
 
@@ -148,3 +147,9 @@ export class GameObject {
     this.three.destory = true;
   }
 }
+
+GameObject.SharedBoxMesh = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshBasicMaterial(),
+)
+GameObject.SharedBoxMesh.userData.shared = true;
