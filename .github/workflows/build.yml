@@ -1,124 +1,120 @@
-name: Build H5 Game (WORKING FIX)
+name: Build Windows EXE
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-
   build-exe:
     runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Neutralinojs
-        shell: cmd
-        run: npm install -g @neutralinojs/neu
-
-      - name: Create wrapper
-        shell: cmd
-        run: neu create wrapper
-
-      - name: Copy game files
-        shell: cmd
-        run: |
-          robocopy . wrapper\resources /E /XD wrapper .git .github node_modules
-          exit 0
-
-      - name: Create index.html
-        shell: cmd
-        run: copy wrapper\resources\main.html wrapper\resources\index.html
-
-      - name: Build EXE
-        shell: cmd
-        run: |
-          cd wrapper
-          neu build --release
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: game-exe
-          path: |
-            wrapper/dist/**/*.exe
-
-
-  build-apk:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      # ✅ 强制安装 Java 17
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-
-      # ✅ 确认 Java 版本
-      - name: Verify Java
-        run: |
-          java -version
-          echo "JAVA_HOME=$JAVA_HOME"
-
-      - name: Setup Node
+      # ── Node.js 环境 ──────────────────────────
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
+          cache: npm
 
-      # ✅ 准备 web 文件
-      - name: Prepare web dir
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 前端构建 ──────────────────────────────
+      # tsc 类型检查；vite build --base ./ 输出相对路径，适配 Neutralinojs 内建服务器
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Vite build
+        run: npx vite build --base ./
+
+      # ── Neutralinojs 环境 ──────────────────────
+      - name: Install Neutralinojs CLI
+        run: npm install -g @neutralinojs/neu
+
+      - name: Create Neutralinojs project skeleton
+        run: neu create thropd
+
+      # ── 合并所有 web 资源到 resources/ ────────
+      # Neutralinojs 要求所有前端文件都在 resources/ 目录下
+      - name: Merge web resources
+        shell: pwsh
         run: |
-          mkdir web
-          rsync -av \
-            --exclude=".git" \
-            --exclude=".github" \
-            --exclude="node_modules" \
-            --exclude="android" \
-            ./ web/
+          # 清空 neu create 生成的默认模板文件
+          Remove-Item -Recurse -Force thropd/resources/* -ErrorAction SilentlyContinue
 
-          cp web/main.html web/index.html
+          # 1. Vite 构建产物（index.html + static/）
+          if (-not (Test-Path dist)) {
+            throw 'dist directory not found. Ensure Vite build succeeded.'
+          }
+          Copy-Item -Recurse dist/* thropd/resources/
 
-      # ✅ 安装 Capacitor
-      - name: Install Capacitor
+          # 2. 游戏静态资源（与 Vite dist/assets 合并）
+          Copy-Item -Recurse assets thropd/resources
+          Copy-Item -Recurse definitions thropd/resources
+          Copy-Item node_modules/@neutralinojs/lib/dist/neutralino.js thropd/resources/neutralino.js
+
+      # ── Neutralinojs 配置 ──────────────────────
+      - name: Configure Neutralinojs
+        shell: pwsh
         run: |
-          npm install @capacitor/core
-          npm install @capacitor/cli
-          npm install @capacitor/android
+          $config = @{
+            applicationId   = "com.9halfcirno.thropd"
+            defaultMode     = "window"
+            port            = 0
+            url             = "/resources/"
+            enableServer    = $true
+            enableNativeAPI = $true
+            tokenSecurity   = "one-time"
+            modes           = @{
+              window = @{
+                title               = "☯️东方幻梦裂隙 ~Touhou Rift of Phantasmal Dreams~"
+                width               = 1280
+                height              = 720
+                minWidth            = 800
+                minHeight           = 600
+                fullScreen          = $false
+                alwaysOnTop         = $false
+                enableInspector     = $false
+                exitProcessOnClose  = $true
+              }
+            }
+            cli             = @{
+              binaryName    = "thropd"
+              resourcesPath = "/resources/"
+            }
+          }
 
-      # ✅ 初始化
-      - name: Init Capacitor
+          $config | ConvertTo-Json -Depth 5 | Set-Content thropd/neutralino.config.json
+
+      # ── 注入 neutralino.js 脚本引用 ────────────
+      - name: Inject neutralino.js into HTML
+        shell: pwsh
         run: |
-          npx cap init Game com.example.game --web-dir web
+          if (-not (Test-Path thropd/resources/index.html)) {
+            throw 'thropd/resources/index.html not found after merge.'
+          }
+          $html = Get-Content thropd/resources/index.html -Raw -Encoding UTF8
+          $html = $html -replace '</head>', '<script src="./neutralino.js"></script></head>'
+          [System.IO.File]::WriteAllText(
+            (Resolve-Path thropd/resources/index.html).Path,
+            $html,
+            [System.Text.UTF8Encoding]::new($false)
+          )
 
-      - name: Add Android
+      # ── 打 包 ──────────────────────────────────
+      - name: Build EXE
         run: |
-          npx cap add android
+          cd thropd
+          neu build --release
 
-      # ✅ 强制 Gradle 使用 Java 17（关键修复）
-      - name: Fix Java compatibility
-        run: |
-          echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
-
-          sed -i 's/sourceCompatibility = JavaVersion.VERSION_21/sourceCompatibility = JavaVersion.VERSION_17/g' android/**/*.gradle || true
-          sed -i 's/targetCompatibility = JavaVersion.VERSION_21/targetCompatibility = JavaVersion.VERSION_17/g' android/**/*.gradle || true
-
-      - name: Sync
-        run: |
-          npx cap sync android
-
-      # ✅ 构建 APK
-      - name: Build APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease \
-            -Dorg.gradle.java.home=$JAVA_HOME \
-            --no-daemon
-
+      # ── 上传产物 ──────────────────────────────
       - uses: actions/upload-artifact@v4
         with:
-          name: game-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          name: thropd-win64
+          path: |
+            thropd/dist/**/thropd-*.exe
+            thropd/dist/**/thropd-*.zip
+          if-no-files-found: error
