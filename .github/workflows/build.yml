@@ -51,7 +51,9 @@ jobs:
           }
           Copy-Item -Recurse dist/* thropd/resources/
 
-          # 2. 游戏静态资源（与 Vite dist/assets 合并）
+          # 2. 游戏静态资源（覆盖 Vite 输出中可能存在的旧版本）
+          Remove-Item -Recurse -Force thropd/resources/assets -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force thropd/resources/definitions -ErrorAction SilentlyContinue
           Copy-Item -Recurse assets thropd/resources
           Copy-Item -Recurse definitions thropd/resources
           Copy-Item node_modules/@neutralinojs/lib/dist/neutralino.js thropd/resources/neutralino.js
