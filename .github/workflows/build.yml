@@ -39,6 +39,7 @@ jobs:
 
       # ── 合并所有 web 资源到 resources/ ────────
       # Neutralinojs 要求所有前端文件都在 resources/ 目录下
+      # Vite 产物 JS/CSS 在 dist/static/，游戏资源在 assets/ + definitions/，不再冲突
       - name: Merge web resources
         shell: pwsh
         run: |
@@ -51,8 +52,8 @@ jobs:
           }
           Copy-Item -Recurse dist/* thropd/resources/
 
-          # 2. 游戏静态资源（覆盖 Vite 输出中可能存在的旧版本）
-          Remove-Item -Recurse -Force thropd/resources/assets -ErrorAction SilentlyContinue
+          # 2. 游戏静态资源（assets/ + definitions/）
+          # 注意：不再删除 thropd/resources/assets，因为 Vite 产物在 static/ 子目录下
           Remove-Item -Recurse -Force thropd/resources/definitions -ErrorAction SilentlyContinue
           Copy-Item -Recurse assets thropd/resources
           Copy-Item -Recurse definitions thropd/resources

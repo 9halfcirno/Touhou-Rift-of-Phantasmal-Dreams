@@ -35,5 +35,7 @@ export default defineConfig({
   build: {
     target: 'es2022',
     outDir: 'dist',
+    // 避免和项目 assets/ 游戏资源目录冲突，Vite JS/CSS 输出到 dist/static/
+    assetsDir: 'static',
   },
 });
