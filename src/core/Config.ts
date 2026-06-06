@@ -22,6 +22,9 @@ const Config: GameConfigData = {
   /** 最大帧率，0 = 不限制 */
   max_fps: 0,
 
+  /** 游戏长宽比 */
+  game_aspect: 16 / 9,
+
   /** 相机距离目标的距离 */
   camera_distance: 16,
 

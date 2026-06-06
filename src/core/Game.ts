@@ -8,6 +8,9 @@ import { setRunPath } from '../graphics/TextureLoader.js';
 // 副作用：注册所有组件和系统
 import '../components/index.js';
 import '../systems/index.js';
+import { InputStack } from '@/input/InputStack.js';
+import { Config } from './Config.js';
+import { GameUI } from './GameUI.js';
 
 /**
  * 游戏入口类
@@ -16,88 +19,126 @@ import '../systems/index.js';
  * 迁移自 code/Game.js
  */
 export class Game {
-  readonly scene: GameScene;
-  readonly TickSystem: TickSystem;
-  readonly RenderSystem: RenderSystem;
-  readonly KeyboardInput = KeyboardInput;
-  readonly MouseInput = MouseInput;
-  readonly domElement: HTMLDivElement;
+	readonly scene: GameScene;
+	readonly ui: GameUI;
+	readonly TickSystem: TickSystem;
+	readonly RenderSystem: RenderSystem;
+	readonly KeyboardInput = KeyboardInput;
+	readonly MouseInput = MouseInput;
+	readonly InputStack: InputStack;
+	readonly domElement: HTMLDivElement;
+	private _inited: boolean = false;
 
-  private _tickCallbacks: Array<(ctx: { frame: number; game: Game }) => void> = [];
-  private _renderCallbacks: Array<(ctx: { frame: number; progress: number }) => void> = [];
+	private _tickCallbacks: Array<(ctx: { frame: number; game: Game }) => void> = [];
+	private _renderCallbacks: Array<(ctx: { frame: number; progress: number }) => void> = [];
 
-  constructor(config: {
-    width: number;
-    height: number;
-    canvasId: string;
-    runPath: string;
-  }) {
-    // 注入运行路径
-    setRunPath(config.runPath);
+	constructor(public config: {
+		width: number;
+		height: number;
+		canvasId: string;
+		runPath: string;
+	}) {
+		// 注入运行路径
+		setRunPath(config.runPath);
 
-    this.scene = new GameScene({
-      width: config.width,
-      height: config.height,
-      canvasId: config.canvasId,
-    });
+		this.scene = new GameScene({
+			width: config.width,
+			height: config.height,
+			canvasId: config.canvasId,
+		});
+		this.ui = new GameUI();
 
-    MouseInput.bind(this.scene.domElement);
+		this.InputStack = new InputStack(this.scene.domElement);
 
-    this.TickSystem = new TickSystem();
-    this.RenderSystem = new RenderSystem();
+		MouseInput.bind(this.scene.domElement);
 
-    this.domElement = document.createElement('div');
-    this.domElement.id = `THGame:${Date.now()}`;
-    this.domElement.append(this.scene.domElement);
+		this.TickSystem = new TickSystem();
+		this.RenderSystem = new RenderSystem();
 
-    // 注入更新回调
-    this.TickSystem.update = () => this.tick();
-    this.RenderSystem.update = () => this.render();
+		this.domElement = document.createElement('div');
+		this.domElement.id = `THGame:${Date.now()}`;
+		// this.domElement.style.position = "relative"
+		this.domElement.append(this.scene.domElement);
 
-    this._preventWebDefaultAction();
-  }
 
-  run(): void {
-    this.startRender();
-    this.startTick();
-  }
+		this._bindEvents();
+	}
 
-  startTick(): void {
-    this.TickSystem.startTick();
-  }
+	async init() {
+		if (this._inited) {
+			console.error(`[Game] 已经初始化, 无需再次调用该方法`)
+		}
+		await this.ui.init({
+			width: this.config.width,
+			height: this.config.height,
+		})
+		this.domElement.append(this.ui.domElement as HTMLElement);
 
-  private tick(): void {
-    this.scene.update({ frame: this.TickSystem.frame, game: this });
-    for (const f of this._tickCallbacks) {
-      f?.({ frame: this.TickSystem.frame, game: this });
-    }
-  }
 
-  addTickCallback(f: (ctx: { frame: number; game: Game }) => void): void {
-    this._tickCallbacks.push(f);
-  }
+		// 注入更新回调
+		this.TickSystem.update = () => this.tick();
+		this.RenderSystem.update = () => this.render();
 
-  startRender(): void {
-    this.RenderSystem.startRender();
-  }
+		this._inited = true;
+	}
 
-  private render(): void {
-    this.scene.render({ progress: this.TickSystem.tickP });
-    for (const f of this._renderCallbacks) {
-      f?.({ frame: this.RenderSystem.frame, progress: this.TickSystem.tickP });
-    }
-  }
+	run(): void {
+		if (!this._inited) {
+			throw new Error(`[Game] 尚未初始化, 请先调用 game.init()`)
+		}
+		this.startRender();
+		this.startTick();
+	}
 
-  addRenderCallback(f: (ctx: { frame: number; progress: number }) => void): void {
-    this._renderCallbacks.push(f);
-  }
+	startTick(): void {
+		this.TickSystem.startTick();
+	}
 
-  exit(): void {
-    this.TickSystem.stopTick();
-    this.RenderSystem.stopRender();
-  }
+	private tick(): void {
+		this.scene.update({ frame: this.TickSystem.frame, game: this });
+		for (const f of this._tickCallbacks) {
+			f?.({ frame: this.TickSystem.frame, game: this });
+		}
+	}
 
-  private _preventWebDefaultAction(): void {
-    document.addEventListener('contextmenu', (event) => event.preventDefault());
-  }
+	addTickCallback(f: (ctx: { frame: number; game: Game }) => void): void {
+		this._tickCallbacks.push(f);
+	}
+
+	startRender(): void {
+		this.RenderSystem.startRender();
+	}
+
+	private render(): void {
+		this.scene.render({ progress: this.TickSystem.tickP });
+		this.ui.render();
+		for (const f of this._renderCallbacks) {
+			f?.({ frame: this.RenderSystem.frame, progress: this.TickSystem.tickP });
+		}
+	}
+
+	addRenderCallback(f: (ctx: { frame: number; progress: number }) => void): void {
+		this._renderCallbacks.push(f);
+	}
+
+	exit(): void {
+		this.TickSystem.stopTick();
+		this.RenderSystem.stopRender();
+	}
+
+	private _bindEvents(): void {
+		document.addEventListener('contextmenu', (event) => event.preventDefault());
+		window.addEventListener("resize", () => {
+			this.scene.updateSize({
+				aspect: Config["game_aspect"],
+				maxWidth: window.innerWidth,
+				maxHeight: window.innerHeight
+			});
+			this.ui.updateSize({
+				aspect: Config["game_aspect"],
+				maxWidth: window.innerWidth,
+				maxHeight: window.innerHeight
+			});
+		})
+	}
 }
