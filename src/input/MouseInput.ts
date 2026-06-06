@@ -1,39 +1,35 @@
 import * as THREE from 'three';
-import type { Position } from '../math/Position.js';
 
 /**
- * 鼠标输入管理器（单例）
+ * 鼠标输入状态容器（纯状态 + 射线检测，无 DOM 副作用）
  *
- * 维护按钮状态、坐标、滚轮回调、射线检测。
- * 迁移自 code/inputs/mouse.js
+ * 由 InputStack 驱动更新，业务层不应直接使用。
+ * 业务层应使用 InputLayer API。
  */
 
-interface WheelState {
+export interface WheelState {
   x: number;
   y: number;
   z: number;
 }
 
-type WheelCallback = (wheel: WheelState) => void;
-
 export const MouseInput = {
   canvas: null as HTMLCanvasElement | null,
 
+  // ─── 按钮状态 ────────────────────────────────
   left: false,
   right: false,
   middle: false,
 
+  // ─── 滚轮 ────────────────────────────────────
   wheel: { x: 0, y: 0, z: 0 } as WheelState,
 
-  movement: { x: 0, y: 0, z: 0 },
-
-  _lastPosition: { x: 0, y: 0 },
-
+  // ─── 坐标 ────────────────────────────────────
   x: 0,
   y: 0,
+  movement: { x: 0, y: 0 },
 
-  _wheelCallbacks: [] as WheelCallback[],
-  _buttonCallbacks: new Map<string, Array<(event: MouseEvent) => void>>(),
+  _lastPosition: { x: 0, y: 0 },
 
   /** 绑定 canvas（用于坐标换算） */
   bind(canvas: HTMLCanvasElement | string): void {
@@ -41,37 +37,6 @@ export const MouseInput = {
       canvas = document.getElementById(canvas) as HTMLCanvasElement;
     }
     this.canvas = canvas;
-  },
-
-  // ─── 滚轮 ────────────────────────────────────
-
-  onWheel(cb: WheelCallback): void {
-    this._wheelCallbacks.push(cb);
-  },
-
-  offWheel(cb: WheelCallback): void {
-    const index = this._wheelCallbacks.indexOf(cb);
-    if (index !== -1) {
-      this._wheelCallbacks.splice(index, 1);
-    }
-  },
-
-  // ─── 按钮 ────────────────────────────────────
-
-  onButton(button: string, cb: (event: MouseEvent) => void): void {
-    if (!this._buttonCallbacks.has(button)) {
-      this._buttonCallbacks.set(button, []);
-    }
-    this._buttonCallbacks.get(button)!.push(cb);
-  },
-
-  offButton(button: string, cb: (event: MouseEvent) => void): void {
-    const arr = this._buttonCallbacks.get(button);
-    if (!arr) return;
-    const index = arr.indexOf(cb);
-    if (index !== -1) {
-      arr.splice(index, 1);
-    }
   },
 
   // ─── 射线检测 ────────────────────────────────
@@ -108,71 +73,53 @@ export const MouseInput = {
     // Plane 检测
     const pos = this._raycaster.ray.intersectPlane(plane, this._intersectionPoint);
     if (pos) {
-      // 匹配原始行为：Z 取反（GameCamera 坐标系的 quirks）
       this._intersectionPoint.set(pos.x, pos.y, pos.z);
       return this._intersectionPoint;
     }
     return null;
   },
+
+  // ─── 由 InputStack 调用的内部方法 ──────────────
+
+  _onMouseDown(event: MouseEvent): void {
+    switch (event.button) {
+      case 0: this.left = true; break;
+      case 1: this.middle = true; break;
+      case 2: this.right = true; break;
+    }
+  },
+
+  _onMouseUp(event: MouseEvent): void {
+    switch (event.button) {
+      case 0: this.left = false; break;
+      case 1: this.middle = false; break;
+      case 2: this.right = false; break;
+    }
+  },
+
+  _onWheel(event: WheelEvent): void {
+    this.wheel.x = event.deltaX;
+    this.wheel.y = event.deltaY;
+    this.wheel.z = event.deltaZ;
+  },
+
+  _onMouseMove(event: MouseEvent): void {
+    const rect = this.canvas?.getBoundingClientRect() || {
+      x: 0,
+      y: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+
+    const x = event.clientX - rect.x;
+    const y = event.clientY - rect.y;
+
+    this.movement.x = x - this._lastPosition.x;
+    this.movement.y = y - this._lastPosition.y;
+
+    this._lastPosition.x = x;
+    this._lastPosition.y = y;
+    this.x = x;
+    this.y = y;
+  },
 };
-
-// ─── 全局事件绑定 ────────────────────────────────
-
-window.addEventListener('mousedown', (event) => {
-  switch (event.button) {
-    case 0:
-      MouseInput.left = true;
-      MouseInput._buttonCallbacks.get('leftDown')?.forEach((cb) => cb(event));
-      break;
-    case 1:
-      MouseInput.middle = true;
-      break;
-    case 2:
-      MouseInput.right = true;
-      MouseInput._buttonCallbacks.get('rightDown')?.forEach((cb) => cb(event));
-      break;
-  }
-});
-
-window.addEventListener('mouseup', (event) => {
-  switch (event.button) {
-    case 0:
-      MouseInput.left = false;
-      MouseInput._buttonCallbacks.get('leftUp')?.forEach((cb) => cb(event));
-      break;
-    case 1:
-      MouseInput.middle = false;
-      break;
-    case 2:
-      MouseInput.right = false;
-      MouseInput._buttonCallbacks.get('rightUp')?.forEach((cb) => cb(event));
-      break;
-  }
-});
-
-window.addEventListener('wheel', (event) => {
-  MouseInput.wheel.x = event.deltaX;
-  MouseInput.wheel.y = event.deltaY;
-  MouseInput.wheel.z = event.deltaZ;
-  MouseInput._wheelCallbacks.forEach((cb) => cb(MouseInput.wheel));
-});
-
-window.addEventListener('mousemove', (event) => {
-  const rect = MouseInput.canvas?.getBoundingClientRect() || {
-    x: 0,
-    y: 0,
-    width: window.innerWidth,
-    height: window.innerHeight,
-  };
-
-  const x = event.clientX - rect.x;
-  const y = event.clientY - rect.y;
-
-  MouseInput.movement.x = x - MouseInput._lastPosition.x;
-  MouseInput.movement.y = y - MouseInput._lastPosition.y;
-
-  MouseInput._lastPosition.x = x;
-  MouseInput._lastPosition.y = y;
-  MouseInput.x = x;
-  MouseInput.y = y;
-});

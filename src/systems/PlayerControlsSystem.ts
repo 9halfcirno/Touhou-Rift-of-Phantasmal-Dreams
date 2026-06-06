@@ -19,13 +19,12 @@ export class PlayerControlsSystem extends System {
 
   override update(ctx: SystemUpdateContext): void {
     const { entities, game, world } = ctx;
-    const input = game.KeyboardInput;
-    const mouse = game.MouseInput;
+    const input = game.InputStack.bottom;
 
-    const w = input.key('w').down;
-    const a = input.key('a').down;
-    const s = input.key('s').down;
-    const d = input.key('d').down;
+    const w = input.keyboard.key('w').down;
+    const a = input.keyboard.key('a').down;
+    const s = input.keyboard.key('s').down;
+    const d = input.keyboard.key('d').down;
 
     const entityList = [...entities] as unknown as Array<{
       position: { x: number; y: number; z: number };
@@ -42,8 +41,8 @@ export class PlayerControlsSystem extends System {
       const dz = (w ? 1 : 0) - (s ? 1 : 0);
       entity.moveBy(dx * speed, 0, dz * speed);
 
-      if (input.key(' ').down) {
-        const mousePos = mouse.inMapPosition(
+      if (input.keyboard.key(' ').down) {
+        const mousePos = input.mouse.positionInMap(
           game.scene.currentCamera,
           (world as { three: { ground: THREE.Plane } }).three.ground,
         );
@@ -53,8 +52,8 @@ export class PlayerControlsSystem extends System {
         }
       }
 
-      if (mouse.left) {
-        const mousePos = mouse.inMapPosition(
+      if (input.mouse.leftButton) {
+        const mousePos = input.mouse.positionInMap(
           game.scene.currentCamera,
           (world as { three: { ground: THREE.Plane } }).three.ground,
         );
