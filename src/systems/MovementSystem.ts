@@ -20,16 +20,14 @@ export class MovementSystem extends System {
       const movement = (entity as { movementVector: { x: number; y: number; z: number; set: (x: number, y: number, z: number) => void } }).movementVector;
 
       if (movement.x === 0 && movement.y === 0 && movement.z === 0) {
-        (entity as { _orginPos: { copy: (p: unknown) => void }; position: unknown })._orginPos.copy(
-          (entity as { position: unknown }).position,
-        );
+        entity.clearTweenPos();
         continue;
       }
 
-      (entity as { setPosition: (x: number, y: number, z: number) => void }).setPosition(
-        (entity as { position: { x: number; y: number; z: number } }).position.x + movement.x,
-        (entity as { position: { x: number; y: number; z: number } }).position.y + movement.y,
-        (entity as { position: { x: number; y: number; z: number } }).position.z + movement.z,
+      entity.setPosition(
+        entity.position.x + movement.x,
+        entity.position.y + movement.y,
+        entity.position.z + movement.z,
       );
 
       movement.set(0, 0, 0);

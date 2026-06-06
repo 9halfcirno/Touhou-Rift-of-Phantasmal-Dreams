@@ -61,6 +61,7 @@ export interface GameConfigData {
   tile_tilt: number;
   game_tick_interval: number;
   max_fps: number;
+  game_aspect: number,
   camera_distance: number;
   camera_follow_speed: number;
   enable_shadows: boolean;

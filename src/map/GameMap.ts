@@ -9,6 +9,7 @@ import { Entity } from '../ecs/Entity.js';
 import { Config } from '../core/Config.js';
 import { THID } from '../resources/THID.js';
 import type { GameMapDefinition } from '../core/types.js';
+import { type Game } from '@/core/Game.js';
 
 /**
  * 游戏地图基类
@@ -98,7 +99,7 @@ export class GameMap {
 
   // ─── 更新 ─────────────────────────────────────
 
-  update(ctx: { game: unknown }): void {
+  update(ctx: { game: Game }): void {
     this.frame++;
     this.systemManager.updateAll({ frame: this.frame, game: ctx.game, world: this });
   }
