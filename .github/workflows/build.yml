@@ -33,56 +33,10 @@ jobs:
       - name: Create Neutralinojs project skeleton
         run: neu create thropd
 
-      # ── ② 硬编码写入 neutralino.config.json ────
+      # ── ② 覆盖 neutralino.config.json ────
       - name: Write Neutralinojs config
         shell: pwsh
-        run: |
-          $config = @{
-            '$schema'        = 'https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json'
-            applicationId    = 'com.9halfcirno.thropd'
-            version          = '1.0.0'
-            defaultMode      = 'window'
-            port             = 0
-            documentRoot     = '/resources/'
-            url              = '/'
-            enableServer     = $true
-            enableNativeAPI  = $true
-            tokenSecurity    = 'one-time'
-            logging          = @{
-              enabled       = $true
-              writeToLogFile = $true
-            }
-            nativeAllowList  = @('app.*', 'os.*', 'debug.log')
-            globalVariables  = @{}
-            modes            = @{
-              window = @{
-                title              = '东方幻梦裂隙 ~Touhou Rift of Phantasmal Dreams~'
-                width              = 800
-                height             = 500
-                minWidth           = 400
-                minHeight          = 200
-                center             = $true
-                fullScreen         = $false
-                alwaysOnTop        = $false
-                icon               = '/resources/assets/icon.png'
-                enableInspector    = $true
-                borderless         = $false
-                maximize           = $false
-                hidden             = $false
-                resizable          = $true
-                exitProcessOnClose = $true
-              }
-            }
-            cli              = @{
-              binaryName     = 'thropd'
-              resourcesPath  = '/resources/'
-              extensionsPath = '/extensions/'
-              clientLibrary  = '/resources/neutralino.js'
-              binaryVersion  = '6.8.0'
-              clientVersion  = '6.8.0'
-            }
-          }
-          $config | ConvertTo-Json -Depth 5 | Set-Content thropd/neutralino.config.json
+        run: Copy-Item -Force _neutralino.config.json thropd/neutralino.config.json
 
       # ── ③ 清空模板 resources ──────────────────
       - name: Clear template resources
@@ -105,13 +59,11 @@ jobs:
       - name: Build Neutralinojs app
         run: |
           cd thropd
-          neu build
+          neu build --release
 
       # ── 上传产物 ──────────────────────────────
       - uses: actions/upload-artifact@v4
         with:
           name: thropd-win64
-          path: |
-            thropd/dist/**/thropd-*.exe
-            thropd/dist/**/thropd-*.zip
+          path: thropd/dist/**/thropd-*.zip
           if-no-files-found: error
