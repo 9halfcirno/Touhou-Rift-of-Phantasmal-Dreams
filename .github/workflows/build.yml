@@ -22,96 +22,90 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # ── 前端构建 ──────────────────────────────
-      # tsc 类型检查；vite build --base ./ 输出相对路径，适配 Neutralinojs 内建服务器
+      # ── TypeScript 类型检查 ────────────────────
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      - name: Vite build
-        run: npx vite build --base ./
-
-      # ── Neutralinojs 环境 ──────────────────────
+      # ── ① neu create ──────────────────────────
       - name: Install Neutralinojs CLI
         run: npm install -g @neutralinojs/neu
 
       - name: Create Neutralinojs project skeleton
         run: neu create thropd
 
-      # ── 合并所有 web 资源到 resources/ ────────
-      # Neutralinojs 要求所有前端文件都在 resources/ 目录下
-      # Vite 产物 JS/CSS 在 dist/static/，游戏资源在 assets/ + definitions/，不再冲突
-      - name: Merge web resources
+      # ── ② 硬编码写入 neutralino.config.json ────
+      - name: Write Neutralinojs config
         shell: pwsh
         run: |
-          # 清空 neu create 生成的默认模板文件
-          Remove-Item -Recurse -Force thropd/resources/* -ErrorAction SilentlyContinue
-
-          # 1. Vite 构建产物（index.html + static/）
-          if (-not (Test-Path dist)) {
-            throw 'dist directory not found. Ensure Vite build succeeded.'
+          $config = @{
+            '$schema'        = 'https://raw.githubusercontent.com/neutralinojs/neutralinojs/main/schemas/neutralino.config.schema.json'
+            applicationId    = 'com.9halfcirno.thropd'
+            version          = '1.0.0'
+            defaultMode      = 'window'
+            port             = 0
+            documentRoot     = '/resources/'
+            url              = '/'
+            enableServer     = $true
+            enableNativeAPI  = $true
+            tokenSecurity    = 'one-time'
+            logging          = @{
+              enabled       = $true
+              writeToLogFile = $true
+            }
+            nativeAllowList  = @('app.*', 'os.*', 'debug.log')
+            globalVariables  = @{}
+            modes            = @{
+              window = @{
+                title              = '东方幻梦裂隙 ~Touhou Rift of Phantasmal Dreams~'
+                width              = 800
+                height             = 500
+                minWidth           = 400
+                minHeight          = 200
+                center             = $true
+                fullScreen         = $false
+                alwaysOnTop        = $false
+                icon               = '/resources/assets/icon.png'
+                enableInspector    = $true
+                borderless         = $false
+                maximize           = $false
+                hidden             = $false
+                resizable          = $true
+                exitProcessOnClose = $true
+              }
+            }
+            cli              = @{
+              binaryName     = 'thropd'
+              resourcesPath  = '/resources/'
+              extensionsPath = '/extensions/'
+              clientLibrary  = '/resources/neutralino.js'
+              binaryVersion  = '6.8.0'
+              clientVersion  = '6.8.0'
+            }
           }
-          Copy-Item -Recurse dist/* thropd/resources/
+          $config | ConvertTo-Json -Depth 5 | Set-Content thropd/neutralino.config.json
 
-          # 2. 游戏静态资源（assets/ + definitions/）
-          # 注意：不再删除 thropd/resources/assets，因为 Vite 产物在 static/ 子目录下
-          Remove-Item -Recurse -Force thropd/resources/definitions -ErrorAction SilentlyContinue
+      # ── ③ 清空模板 resources ──────────────────
+      - name: Clear template resources
+        shell: pwsh
+        run: Remove-Item -Recurse -Force thropd/resources/* -ErrorAction SilentlyContinue
+
+      # ── ④ Vite 构建（覆盖 outDir）─────────────
+      - name: Vite build
+        run: npx vite build --outDir thropd/resources --base ./
+
+      # ── ⑤ 复制游戏资源 ────────────────────────
+      - name: Copy game assets
+        shell: pwsh
+        run: |
           Copy-Item -Recurse assets thropd/resources
           Copy-Item -Recurse definitions thropd/resources
           Copy-Item node_modules/@neutralinojs/lib/dist/neutralino.js thropd/resources/neutralino.js
 
-      # ── Neutralinojs 配置 ──────────────────────
-      - name: Configure Neutralinojs
-        shell: pwsh
-        run: |
-          $config = @{
-            applicationId   = "com.9halfcirno.thropd"
-            defaultMode     = "window"
-            port            = 0
-            url             = "/resources/"
-            enableServer    = $true
-            enableNativeAPI = $true
-            tokenSecurity   = "one-time"
-            modes           = @{
-              window = @{
-                title               = "☯️东方幻梦裂隙 ~Touhou Rift of Phantasmal Dreams~"
-                width               = 1280
-                height              = 720
-                minWidth            = 800
-                minHeight           = 600
-                fullScreen          = $false
-                alwaysOnTop         = $false
-                enableInspector     = $false
-                exitProcessOnClose  = $true
-              }
-            }
-            cli             = @{
-              binaryName    = "thropd"
-              resourcesPath = "/resources/"
-            }
-          }
-
-          $config | ConvertTo-Json -Depth 5 | Set-Content thropd/neutralino.config.json
-
-      # ── 注入 neutralino.js 脚本引用 ────────────
-      - name: Inject neutralino.js into HTML
-        shell: pwsh
-        run: |
-          if (-not (Test-Path thropd/resources/index.html)) {
-            throw 'thropd/resources/index.html not found after merge.'
-          }
-          $html = Get-Content thropd/resources/index.html -Raw -Encoding UTF8
-          $html = $html -replace '</head>', '<script src="./neutralino.js"></script></head>'
-          [System.IO.File]::WriteAllText(
-            (Resolve-Path thropd/resources/index.html).Path,
-            $html,
-            [System.Text.UTF8Encoding]::new($false)
-          )
-
-      # ── 打 包 ──────────────────────────────────
-      - name: Build EXE
+      # ── ⑥ neu build ───────────────────────────
+      - name: Build Neutralinojs app
         run: |
           cd thropd
-          neu build --release
+          neu build
 
       # ── 上传产物 ──────────────────────────────
       - uses: actions/upload-artifact@v4

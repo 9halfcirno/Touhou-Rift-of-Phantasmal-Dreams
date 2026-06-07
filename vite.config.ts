@@ -25,7 +25,7 @@ export default defineConfig({
   },
 
   // 当前目录作为静态资源根，/assets/* 和 /definitions/* 可直访
-  publicDir: './src',
+  publicDir: './public',
 
   server: {
     port: 3000,
@@ -34,8 +34,9 @@ export default defineConfig({
 
   build: {
     target: 'es2022',
-    outDir: 'dist',
-    // 避免和项目 assets/ 游戏资源目录冲突，Vite JS/CSS 输出到 dist/static/
-    assetsDir: 'static',
+    // 构建前应该neu create project
+    outDir: './project/resources/',
+    assetsDir: 'src',
+    chunkSizeWarningLimit: 500
   },
 });

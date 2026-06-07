@@ -8,6 +8,14 @@ import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { InputLayer } from './input/InputLayer.js';
 
+
+let _orgFetch = window.fetch;
+window.fetch = (...args) => {
+	console.log(`url: ${args[0]}`)
+	return _orgFetch(...args)
+}
+
+
 // ─── 窗口配置 ───────────────────────────────────
 
 const RUN_PATH = ''; // Vite dev 下根路径为空
@@ -33,7 +41,6 @@ const game = new TH.Game({
 	runPath: RUN_PATH,
 });
 
-await game.init();
 
 document.getElementById('game')!.append(game.domElement);
 
@@ -67,6 +74,7 @@ debugInput.mouse.onWheel((wheel) => {
 // ─── 主初始化流程 ──────────────────────────────
 
 async function init() {
+	await game.init();
 	// 1. 启用 debug 模式（Grid + OrbitControls）
 	game.scene.$debug();
 
@@ -97,10 +105,10 @@ async function init() {
 	game.scene.currentMap!.addEntity(entity);
 
 	// 6. 创建敌人实体
-	const enemy = game.scene.currentMap!.entityManager.createEntity(
+	const enemy = sebMap.entityManager.createEntity(
 		'th:entity=enemy/fairy',
 	);
-	game.scene.currentMap!.addObject(enemy);
+	sebMap.addObject(enemy);
 
 	enemy.position.set(4, 0, 4);
 

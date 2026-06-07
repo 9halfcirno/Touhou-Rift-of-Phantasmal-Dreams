@@ -6,6 +6,8 @@
     "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
 
+    "outDir": "./project/resourves/src",
+
     /* 严格模式 —— 第一阶段全开 */
     "strict": true,
     "strictNullChecks": true,
