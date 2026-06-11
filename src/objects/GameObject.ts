@@ -142,6 +142,7 @@ export class GameObject {
     if (this.inMap && typeof (this.inMap as { removeObject?: (obj: GameObject) => void }).removeObject === 'function') {
       (this.inMap as { removeObject: (obj: GameObject) => void }).removeObject(this);
     }
+    this.three.object3d?.removeFromParent(); // 确保彻底从场景中移除
 
     this.three.object3d = null;
     this.three.destory = true;

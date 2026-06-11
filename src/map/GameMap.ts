@@ -24,9 +24,10 @@ export class GameMap {
   readonly id: string;
 
   /** Three.js 渲染层次 */
-  readonly three: {
-    group: THREE.Group;
+  three: {
+    group: THREE.Group | null;
     ground: THREE.Plane;
+    destory: boolean;
   };
 
   /** 是否在场景中显示 */
@@ -68,10 +69,10 @@ export class GameMap {
 
   constructor(id: string) {
     this.id = id;
-    this.three = {
-      group: new THREE.Group(),
-      ground: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
-    };
+    this.three = {} as any;
+    this.three.group = new THREE.Group()
+    this.three.ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
+    
     this.three.group.name = `GameMap_${id}`;
     this.three.group.rotation.x = Config.tile_tilt;
 
@@ -94,7 +95,7 @@ export class GameMap {
   /** Debug 辅助 */
   $debug(): void {
     const axe = new THREE.AxesHelper(5);
-    this.three.group.add(axe);
+    this.three.group?.add(axe);
   }
 
   // ─── 更新 ─────────────────────────────────────
@@ -145,11 +146,13 @@ export class GameMap {
   // ─── 场景切换 ─────────────────────────────────
 
   _exitScene(): void {
+    if (!this.three.group) return;
     this.three.group.visible = false;
     this.isInScene = false;
   }
 
   _enterScene(): void {
+    if (!this.three.group) return;
     this.three.group.visible = true;
     this.isInScene = true;
   }
@@ -192,8 +195,16 @@ export class GameMap {
   // ─── 销毁 ─────────────────────────────────────
 
   destory(): void {
+    this.three.destory = true;
     this.entityManager.getAllEntities().forEach((e) => {
       this.entityManager.removeEntity(e);
     });
+    this.clearObjects();
+    if (!this.three.group) return;
+    this.three.group.removeFromParent(); // 确保移除
+    this.three.group.clear(); // 清空容器
+    this.three.group = null;
+
+    this._threeManager.clear() // 清空子物体
   }
 }

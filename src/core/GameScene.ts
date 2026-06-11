@@ -176,7 +176,7 @@ export class GameScene {
 			this.switchToGameMap(map);
 		}
 
-		this.three.scene.add(map.three.group);
+		this.three.scene.add(map.three.group!);
 	}
 
 	switchToGameMap(map: GameMap | string): void {
@@ -190,6 +190,10 @@ export class GameScene {
 		}
 
 		if (map === this.currentMap) return;
+
+		if (map.three.destory) {
+			throw new Error(`无法切换为一个已经被销毁的GameMap`)
+		};
 
 		this.currentMap?._exitScene();
 		this.currentMap = map;
@@ -207,6 +211,6 @@ export class GameScene {
 
 		this.gameMaps.delete(map.id);
 		found._exitScene();
-		this.three.scene.remove(found.three.group);
+		this.three.scene.remove(found.three.group!);
 	}
 }

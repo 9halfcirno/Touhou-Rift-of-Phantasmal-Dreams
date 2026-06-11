@@ -13,7 +13,7 @@ export class GameSplicingMap extends GameMap {
     floor.name = `GameMap_${id}_floor`;
     (this.three as unknown as Record<string, THREE.Group>).floor = floor;
     this.three.ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-    this.three.group.add(floor);
+    this.three.group?.add(floor);
   }
 
   override async init(): Promise<void> {
