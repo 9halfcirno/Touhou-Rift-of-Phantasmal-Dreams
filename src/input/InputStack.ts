@@ -104,7 +104,7 @@ export class InputStack {
 		this.domElement.addEventListener('pointerdown', this._onPointerDown);
 		window.addEventListener('pointerup', this._onPointerUp);
 		this.domElement.addEventListener('pointermove', this._onPointerMove);
-		this.domElement.addEventListener('pointercancel', this._onPointerCancel);
+		window.addEventListener('pointercancel', this._onPointerCancel);
 		window.addEventListener('blur', this._onBlur);
 		document.addEventListener('visibilitychange', this._onVisibilityChange);
 	}
@@ -116,13 +116,13 @@ export class InputStack {
 		window.removeEventListener('keydown', this._onKeyDown);
 		window.removeEventListener('keyup', this._onKeyUp);
 		this.domElement.removeEventListener('mousedown', this._onMouseDown);
-		this.domElement.removeEventListener('mouseup', this._onMouseUp);
+		window.removeEventListener('mouseup', this._onMouseUp);
 		this.domElement.removeEventListener('wheel', this._onWheel);
 		this.domElement.removeEventListener('mousemove', this._onMouseMove);
 		this.domElement.removeEventListener('pointerdown', this._onPointerDown);
-		this.domElement.removeEventListener('pointerup', this._onPointerUp);
+		window.removeEventListener('pointerup', this._onPointerUp);
 		this.domElement.removeEventListener('pointermove', this._onPointerMove);
-		this.domElement.removeEventListener('pointercancel', this._onPointerCancel);
+		window.removeEventListener('pointercancel', this._onPointerCancel);
 		window.removeEventListener('blur', this._onBlur);
 		document.removeEventListener('visibilitychange', this._onVisibilityChange);
 	}
