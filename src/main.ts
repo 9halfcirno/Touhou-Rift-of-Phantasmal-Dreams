@@ -8,7 +8,6 @@ import * as THREE from 'three';
 import * as PIXI from "pixi.js";
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { InputLayer } from './input/InputLayer.js';
-import { PixiEventTranslator } from './utils/pixi_event_translator.js';
 
 
 let _orgFetch = window.fetch;
@@ -152,7 +151,6 @@ async function init() {
 
 	// game.ui.pixi.app.renderer.removeAllListeners();
 	
-	let transot = new PixiEventTranslator(game.domElement, window.devicePixelRatio);
 	debugInput.pointer.on("pointerdown", (w) => {
 		if (!w) return;
 		const clonedEvent = new PointerEvent(w.type, w);
