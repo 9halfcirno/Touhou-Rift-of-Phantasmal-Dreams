@@ -5,8 +5,10 @@
  */
 import * as TH from './index.js';
 import * as THREE from 'three';
+import * as PIXI from "pixi.js";
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { InputLayer } from './input/InputLayer.js';
+import { PixiEventTranslator } from './utils/pixi_event_translator.js';
 
 
 let _orgFetch = window.fetch;
@@ -37,24 +39,12 @@ if (maxWidth / maxHeight > STAGE_ASPECT) {
 const game = new TH.Game({
 	width: stageWidth,
 	height: stageHeight,
-	canvasId: 'game-canvas',
 	runPath: RUN_PATH,
 });
 
 
 document.getElementById('game')!.append(game.domElement);
 
-// ─── Stats 面板 ──────────────────────────────────
-
-const statsTps = new Stats();
-statsTps.showPanel(0);
-statsTps.dom.style.cssText = `position:fixed;top:0;right:0;left:auto;z-index:10000`;
-document.body.append(statsTps.dom);
-
-const statsFps = new Stats();
-statsFps.showPanel(0);
-statsFps.dom.style.cssText = 'position:fixed;top:0;left:0;z-index:10000';
-document.body.append(statsFps.dom);
 
 // ─── Debug 辅助 ──────────────────────────────────
 
@@ -76,7 +66,9 @@ debugInput.mouse.onWheel((wheel) => {
 async function init() {
 	await game.init();
 	// 1. 启用 debug 模式（Grid + OrbitControls）
-	game.scene.$debug();
+	await game.$debug({
+		console: true
+	});
 
 	// 2. 加载地图
 	const mainMap = new TH.GameSplicingMap('th:map=main');
@@ -112,6 +104,21 @@ async function init() {
 
 	enemy.position.set(4, 0, 4);
 
+
+	let uiLayer = new TH.UILayer(game.ui.pixi.app.stage);
+	uiLayer.display();
+	let icon = new PIXI.Sprite((await TH.TextureLoader.get("th:texture=entity/reimu"))!.toPIXI(
+		game.scene.three.renderer,
+		game.ui.pixi.app.renderer,
+	));
+	icon.scale.set(3);
+
+	// console.log(icon);
+
+	uiLayer.pixi.group.addChild(
+		icon
+	)
+
 	// 7. 调试球（红色小球跟随鼠标）
 	const debugSphere = new THREE.Mesh(
 		new THREE.SphereGeometry(0.1),
@@ -143,10 +150,21 @@ async function init() {
 		}
 	});
 
+	// game.ui.pixi.app.renderer.removeAllListeners();
+	
+	let transot = new PixiEventTranslator(game.domElement, window.devicePixelRatio);
+	debugInput.pointer.on("pointerdown", (w) => {
+		if (!w) return;
+		const clonedEvent = new PointerEvent(w.type, w);
+
+		// 2. 把复印件分发给 Pixi 喵
+		const isSuccess = game.ui.pixi.app.renderer.events.domElement.dispatchEvent(clonedEvent);
+
+		// console.log(w, isSuccess);
+	})
+
 	// 11. Tick 回调：更新 debug 信息
 	game.addTickCallback(() => {
-		statsTps.update();
-
 		const point = TH.MouseInput.inMapPosition(
 			game.scene.currentCamera,
 			mainMap.three.ground,
@@ -164,11 +182,6 @@ async function init() {
 			`renderDelta: ${game.RenderSystem.renderDelta.toFixed(3)}s`,
 			`mouse screen: ${TH.MouseInput.x}, ${TH.MouseInput.y}`,
 		].join('<br>');
-	});
-
-	// 12. Render 回调：更新 FPS 面板
-	game.addRenderCallback(() => {
-		statsFps.update();
 	});
 
 	// 13. 启动

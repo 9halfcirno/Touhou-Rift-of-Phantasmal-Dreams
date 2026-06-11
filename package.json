@@ -5,7 +5,7 @@
   "type": "module",
   "description": "☯️東方幻夢鄉 ~Touhou Rift of Phantasmal Dreams~ (TypeScript 版)",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"

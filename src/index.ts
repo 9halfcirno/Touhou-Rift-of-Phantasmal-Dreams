@@ -53,6 +53,9 @@ export { THREEManager } from './managers/THREEManager.js';
 // ─── 游戏对象 ─────────────────────────────────
 export { GameObject, GameObject2D, GameCamera } from './objects/index.js';
 
+// --- UI相关 ---------------------------------
+export { UILayer } from "./ui/index.js"
+
 // ─── ECS 框架 ─────────────────────────────────
 export {
   Component,
@@ -88,7 +91,7 @@ export {
 export { GameMap, GameSplicingMap } from './map/index.js';
 
 // ─── 输入 ───────────────────────────────────────
-export { KeyboardInput, MouseInput } from './input/index.js';
+export { KeyboardInput, MouseInput, PointerInput, InputLayer } from './input/index.js';
 
 // ─── 副作用注册 ──────────────────────────────
 import './components/index.js';
