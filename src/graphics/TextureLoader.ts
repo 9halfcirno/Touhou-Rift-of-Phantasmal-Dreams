@@ -23,8 +23,8 @@ export function setRunPath(path: string): void {
 }
 
 export const TextureLoader = {
-  /** thid/url → THREE.Texture 缓存池 */
-  cache: new Map<string, THREE.Texture>(),
+  /** thid/url → Texture 缓存池 */
+  cache: new Map<string, Texture>(),
 
   /** Three.js 原生加载器 */
   three: {
@@ -76,8 +76,9 @@ export const TextureLoader = {
             isOriginal: true,
             pixelsPerUnit: opts.pixelsPerUnit ?? 16,
           };
-          self.cache.set(url, tex);
-          resolve(new Texture(tex));
+          let texture = new Texture(tex);
+          self.cache.set(url, texture);
+          resolve(texture);
         },
         undefined,
         reject,
@@ -94,7 +95,9 @@ export const TextureLoader = {
    */
   get(
     thid: string,
-    opts: { async?: boolean; shared?: boolean } = {},
+    opts: { async?: boolean; shared?: boolean } = {
+      shared: false // 默认不共享纹理对象
+    },
   ): Texture | Promise<Texture> | undefined {
     if (!thid) return undefined;
 
@@ -102,8 +105,8 @@ export const TextureLoader = {
       const url = this._parseTextureUrl(thid);
       if (!url) return undefined;
       const org = this.cache.get(url);
-      if (!org) throw new Error(`[Texture] 纹理: "${thid}"尚未加载`);
-      return new Texture(opts.shared ? org : org.clone());
+      if (!org) throw new Error(`[Texture] 纹理: "${thid}"尚未加载, 请尝试使用load方法或传入{ async: true }`);
+      return opts.shared ? org : new Texture(org.three.texture.clone());
     }
 
     return this.load(thid).then(

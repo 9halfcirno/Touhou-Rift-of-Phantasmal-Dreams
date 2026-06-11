@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Position, Vector2 } from '../math/Position.js';
 import { util } from '../utils/utils.js';
 import { Config } from '../core/Config.js';
+import { uuid } from '@/utils/uuid.js';
 
 /**
  * 游戏对象基类
@@ -69,7 +70,7 @@ export class GameObject {
     this._tweenTargetPos = new Position(this.position.x, this.position.y, this.position.z);
 
     this.rotation = params.rotation?.clone() ?? new Vector2(0, 0);
-    this.uuid = util.uuid();
+    this.uuid = uuid();
 
     this.updateThreeData(1);
 
@@ -129,6 +130,13 @@ export class GameObject {
 
   updateTexture(_tex: unknown, _opts?: unknown): void {
     // 由子类实现
+  }
+
+  setObject3D(obj: THREE.Object3D) {
+    let par = this.three.object3d?.parent;
+    this.three.object3d?.removeFromParent();
+    this.three.object3d = obj;
+    par && par.add(obj);
   }
 
   // ─── 销毁 ─────────────────────────────────────

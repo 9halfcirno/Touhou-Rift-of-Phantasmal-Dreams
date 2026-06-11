@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import type { TextureLoader } from './TextureLoader.js';
 import * as PIXI from 'pixi.js';
 
+import { uuid } from "@/utils/uuid.ts";
+
 /**
  * 纹理包装类
  *
@@ -9,11 +11,13 @@ import * as PIXI from 'pixi.js';
  * 迁移自 code/game_texture/texture.js
  */
 export class Texture {
+	readonly uuid = uuid();
 	readonly three: { texture: THREE.Texture };
 
 	/** 每单位像素数（默认 16） */
 	pixelsPerUnit: number;
 	pixi: { texture?: PIXI.Texture; } = { texture: undefined };
+	destoryed: boolean = false;
 
 	constructor(tex: THREE.Texture | Texture | string) {
 		this.three = { texture: undefined! };
@@ -106,7 +110,19 @@ export class Texture {
 		return pixiTex;
 	}
 
+	disposePIXI() {
+		if (this.pixi.texture) {
+			this.pixi.texture.destroy(false); // 不销毁底层资源
+			this.pixi.texture = undefined;
+		}
+	}
+
 	dispose(): void {
+		if (this.pixi.texture) {
+			this.pixi.texture.destroy(true);
+			this.pixi.texture = undefined;
+		}
 		this.three.texture.dispose();
+		this.destoryed = true;
 	}
 }
