@@ -6,16 +6,7 @@
 import * as TH from './index.js';
 import * as THREE from 'three';
 import * as PIXI from "pixi.js";
-import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { InputLayer } from './input/InputLayer.js';
-
-
-let _orgFetch = window.fetch;
-window.fetch = (...args) => {
-	console.log(`url: ${args[0]}`)
-	return _orgFetch(...args)
-}
-
 
 // ─── 窗口配置 ───────────────────────────────────
 
@@ -66,7 +57,8 @@ async function init() {
 	await game.init();
 	// 1. 启用 debug 模式（Grid + OrbitControls）
 	await game.$debug({
-		console: true
+		console: true,
+		fpsAndTps: true
 	});
 
 	// 2. 加载地图
@@ -130,7 +122,7 @@ async function init() {
 		if (k.down)
 			game.scene.switchToGameMap(
 				mainMap === game.scene.currentMap ? sebMap : mainMap,
-			);
+			);		
 	});
 
 	// 9. Z 键扣血

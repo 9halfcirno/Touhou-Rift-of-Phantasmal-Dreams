@@ -67,7 +67,7 @@ export class Game {
 			height: this.config.height,
 			game: this
 		});
-		
+
 
 		this.InputStack = new InputStack(this.domElement);
 
@@ -187,26 +187,28 @@ export class Game {
 	} = {}) {
 		if (opts.console && window.navigator.platform !== "Win32") await import("eruda").then(() => eruda.init())
 		opts.scene && this.scene.$debug();
-		
+
 		if (opts.fpsAndTps) {
 
 			// ─── Stats 面板 ──────────────────────────────────
-			
-			const statsTps = new Stats();
-			statsTps.showPanel(0);
-			statsTps.dom.style.cssText = `position:fixed;top:0;right:0;left:auto;z-index:10000`;
-			this.domElement.append(statsTps.dom);
-			
-			const statsFps = new Stats();
-			statsFps.showPanel(0);
-			statsFps.dom.style.cssText = 'position:fixed;top:0;left:0;z-index:10000';
-			this.domElement.append(statsFps.dom);
 
-			this.addRenderCallback(() => {
-				statsFps.update();
-			});
-			this.addTickCallback(() => {
-				statsTps.update();
+			import("three/examples/jsm/libs/stats.module.js").then((mod) => {
+				let Stats = mod.default
+				const statsTps = new Stats();
+				statsTps.showPanel(0);
+				statsTps.dom.style.cssText = `position:fixed;top:0;right:0;left:auto;z-index:10000`;
+				this.domElement.append(statsTps.dom);
+
+				const statsFps = new Stats();
+				statsFps.showPanel(0);
+				statsFps.dom.style.cssText = 'position:fixed;top:0;left:0;z-index:10000';
+				this.domElement.append(statsFps.dom);
+				this.addRenderCallback(() => {
+					statsFps.update();
+				});
+				this.addTickCallback(() => {
+					statsTps.update();
+				})
 			})
 		}
 	}
