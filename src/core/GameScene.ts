@@ -39,21 +39,22 @@ export class GameScene {
 	/** Debug 相关 */
 	private debug: Record<string, any> | null = null;
 
-	constructor(args: { width: number; height: number; canvasId?: string }) {
+	constructor(args: { width: number; height: number; game: Game }) {
 		const scene = new THREE.Scene();
 		const camera = new THREE.PerspectiveCamera(60, args.width / args.height, 0.1, 1000);
 		camera.name = 'Camera_default';
 
-		const renderer = new THREE.WebGLRenderer({ antialias: true });
+		const renderer = new THREE.WebGLRenderer({
+			canvas: args.game.canvas,
+			context: args.game.webGL2Context,
+			antialias: true
+		});
 		renderer.setSize(args.width, args.height);
 		renderer.setClearColor(0x000000);
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.shadowMap.enabled = true;
 
-		this.domElement = renderer.domElement;
-		this.domElement.id = args.canvasId || 'game-canvas';
-		this.domElement.style.position = "absolute";
-
+		this.domElement = args.game.canvas;
 
 		// 灯光
 		const ambLight = new THREE.AmbientLight(0xffffff, 0.1);
@@ -112,24 +113,12 @@ export class GameScene {
 	}
 
 	updateSize(opts: {
-		maxWidth: number,
-		maxHeight: number,
+		width: number,
+		height: number,
 		aspect: number
 	}) {
-		const maxWidth = opts.maxWidth || window.innerWidth;
-		const maxHeight = opts.maxHeight || window.innerHeight;
-		const stageAspect = opts.aspect || 16 / 9;
 
-		let stageWidth: number, stageHeight: number;
-		if (maxWidth / maxHeight > stageAspect) {
-			stageHeight = maxHeight;
-			stageWidth = maxHeight * stageAspect;
-		} else {
-			stageWidth = maxWidth;
-			stageHeight = maxWidth / stageAspect;
-		}
-
-		this.refreshThreeArgs({ aspect: stageAspect, width: stageWidth, height: stageHeight });
+		this.refreshThreeArgs({ aspect: opts.aspect, width: opts.width, height: opts.height });
 	}
 
 	// ─── Debug ────────────────────────────────────

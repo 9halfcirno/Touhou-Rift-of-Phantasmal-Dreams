@@ -11,6 +11,7 @@ import '../systems/index.js';
 import { InputStack } from '@/input/InputStack.js';
 import { Config } from './Config.js';
 import { GameUI } from './GameUI.js';
+import eruda from 'eruda';
 
 /**
  * 游戏入口类
@@ -27,6 +28,8 @@ export class Game {
 	readonly MouseInput = MouseInput;
 	readonly InputStack: InputStack;
 	readonly domElement: HTMLDivElement;
+	readonly canvas: HTMLCanvasElement;
+	readonly webGL2Context: WebGL2RenderingContext;
 	private _inited: boolean = false;
 
 	private _tickCallbacks: Array<(ctx: { frame: number; game: Game }) => void> = [];
@@ -35,45 +38,57 @@ export class Game {
 	constructor(public config: {
 		width: number;
 		height: number;
-		canvasId: string;
 		runPath: string;
 	}) {
 		// 注入运行路径
 		setRunPath(config.runPath);
 
+		this.domElement = document.createElement('div');
+		let domId = `THGame:${Date.now()}`;
+		this.domElement.id = domId;
+		// this.domElement.style.position = "relative"
+		this.canvas = document.createElement("canvas");
+		this.canvas.style.position = "absolute";
+		this.domElement.append(this.canvas);
+
+		this.canvas.id = `${domId}-canvas`;
+		let gl = this.canvas.getContext("webgl2");
+		if (!gl) throw new Error(`无法创建 WebGL2 上下文!请更新浏览器或系统 WebView !`);
+		this.webGL2Context = gl;
+
 		this.scene = new GameScene({
 			width: config.width,
 			height: config.height,
-			canvasId: config.canvasId,
+			game: this
 		});
-		this.ui = new GameUI();
 
-		this.InputStack = new InputStack(this.scene.domElement);
+		this.ui = new GameUI({
+			width: this.config.width,
+			height: this.config.height,
+			game: this
+		});
+		
 
-		MouseInput.bind(this.scene.domElement);
+		this.InputStack = new InputStack(this.domElement);
+
+		MouseInput.bind(this.domElement);
 
 		this.TickSystem = new TickSystem();
 		this.RenderSystem = new RenderSystem();
 
-		this.domElement = document.createElement('div');
-		this.domElement.id = `THGame:${Date.now()}`;
-		// this.domElement.style.position = "relative"
-		this.domElement.append(this.scene.domElement);
-
 
 		this._bindEvents();
+		this.updateGameSize();
 	}
 
 	async init() {
 		if (this._inited) {
 			console.error(`[Game] 已经初始化, 无需再次调用该方法`)
 		}
-		await this.ui.init({
-			width: this.config.width,
-			height: this.config.height,
-		})
+		await this.ui.init(this)
 		this.domElement.append(this.ui.domElement as HTMLElement);
 
+		this.updateGameSize();
 
 		// 注入更新回调
 		this.TickSystem.update = () => this.tick();
@@ -110,7 +125,9 @@ export class Game {
 	}
 
 	private render(): void {
+		this.scene.three.renderer.state.reset();
 		this.scene.render({ progress: this.TickSystem.tickP });
+		this.ui.pixi.app.renderer.resetState();
 		this.ui.render();
 		for (const f of this._renderCallbacks) {
 			f?.({ frame: this.RenderSystem.frame, progress: this.TickSystem.tickP });
@@ -129,16 +146,68 @@ export class Game {
 	private _bindEvents(): void {
 		document.addEventListener('contextmenu', (event) => event.preventDefault());
 		window.addEventListener("resize", () => {
-			this.scene.updateSize({
-				aspect: Config["game_aspect"],
-				maxWidth: window.innerWidth,
-				maxHeight: window.innerHeight
-			});
-			this.ui.updateSize({
-				aspect: Config["game_aspect"],
-				maxWidth: window.innerWidth,
-				maxHeight: window.innerHeight
-			});
+			this.updateGameSize();
 		})
+	}
+
+	private updateGameSize() {
+		const maxWidth = window.innerWidth;
+		const maxHeight = window.innerHeight;
+		const stageAspect = Config["game_aspect"] || 16 / 9;
+
+		let stageWidth: number, stageHeight: number;
+		if (maxWidth / maxHeight > stageAspect) {
+			stageHeight = maxHeight;
+			stageWidth = maxHeight * stageAspect;
+		} else {
+			stageWidth = maxWidth;
+			stageHeight = maxWidth / stageAspect;
+		}
+
+		this.scene.updateSize({
+			aspect: Config["game_aspect"],
+			width: stageWidth,
+			height: stageHeight
+		});
+		this.ui.updateSize({
+			aspect: Config["game_aspect"],
+			width: stageWidth,
+			height: stageHeight
+		});
+
+		this.domElement.style.width = `${stageWidth}px`;
+		this.domElement.style.height = `${stageHeight}px`;
+	}
+
+	async $debug(opts: {
+		scene?: boolean;
+		console?: boolean;
+		fpsAndTps?: boolean;
+		debugDiv?: boolean;
+	} = {}) {
+		if (opts.console && window.navigator.platform !== "Win32") await import("eruda").then(() => eruda.init())
+		opts.scene && this.scene.$debug();
+		
+		if (opts.fpsAndTps) {
+
+			// ─── Stats 面板 ──────────────────────────────────
+			
+			const statsTps = new Stats();
+			statsTps.showPanel(0);
+			statsTps.dom.style.cssText = `position:fixed;top:0;right:0;left:auto;z-index:10000`;
+			this.domElement.append(statsTps.dom);
+			
+			const statsFps = new Stats();
+			statsFps.showPanel(0);
+			statsFps.dom.style.cssText = 'position:fixed;top:0;left:0;z-index:10000';
+			this.domElement.append(statsFps.dom);
+
+			this.addRenderCallback(() => {
+				statsFps.update();
+			});
+			this.addTickCallback(() => {
+				statsTps.update();
+			})
+		}
 	}
 }
