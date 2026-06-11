@@ -14,7 +14,7 @@ export interface WheelState {
 }
 
 export const MouseInput = {
-  canvas: null as HTMLCanvasElement | null,
+  domElement: null as HTMLElement | null,
 
   // ─── 按钮状态 ────────────────────────────────
   left: false,
@@ -32,11 +32,11 @@ export const MouseInput = {
   _lastPosition: { x: 0, y: 0 },
 
   /** 绑定 canvas（用于坐标换算） */
-  bind(canvas: HTMLCanvasElement | string): void {
-    if (typeof canvas === 'string') {
-      canvas = document.getElementById(canvas) as HTMLCanvasElement;
+  bind(ele: HTMLElement | string): void {
+    if (typeof ele === 'string') {
+      ele = document.getElementById(ele) as HTMLElement;
     }
-    this.canvas = canvas;
+    this.domElement = ele;
   },
 
   // ─── 射线检测 ────────────────────────────────
@@ -52,7 +52,7 @@ export const MouseInput = {
     camera: THREE.PerspectiveCamera,
     plane: THREE.Plane | THREE.Mesh,
   ): THREE.Vector3 | null {
-    const rect = this.canvas?.getBoundingClientRect() || {
+    const rect = this.domElement?.getBoundingClientRect() || {
       x: 0,
       y: 0,
       width: window.innerWidth,
@@ -104,7 +104,7 @@ export const MouseInput = {
   },
 
   _onMouseMove(event: MouseEvent): void {
-    const rect = this.canvas?.getBoundingClientRect() || {
+    const rect = this.domElement?.getBoundingClientRect() || {
       x: 0,
       y: 0,
       width: window.innerWidth,
