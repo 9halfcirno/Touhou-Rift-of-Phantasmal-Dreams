@@ -52,7 +52,7 @@ export class PlayerControlsSystem extends System {
         }
       }
 
-      if (input.mouse.leftButton) {
+      if (input.pointer.isDown/*input.mouse.leftButton*/) {
         const mousePos = input.mouse.positionInMap(
           game.scene.currentCamera,
           (world as { three: { ground: THREE.Plane } }).three.ground,
