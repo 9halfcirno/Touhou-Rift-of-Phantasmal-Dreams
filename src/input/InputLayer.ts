@@ -290,7 +290,7 @@ export class InputLayer {
 	_handleWheel(wheel: WheelState, event?: WheelEvent): void {
 		this._wheel = wheel;
 		for (const cb of this._wheelCallbacks) {
-			try { cb(wheel, event); } catch { /* 吞掉回调异常 */ }
+			try { cb(wheel, event); } catch (e) { console.error(e) }
 		}
 	}
 
@@ -398,7 +398,7 @@ export class InputLayer {
 		const arr = this._keyCallbacks.get(key);
 		if (!arr) return;
 		for (const cb of arr) {
-			try { cb(state, event); } catch { /* 吞掉回调异常 */ }
+			try { cb(state, event); } catch (e) { console.error(e) }
 		}
 	}
 
@@ -406,7 +406,7 @@ export class InputLayer {
 		const arr = this._pointerCallbacks.get(type);
 		if (!arr) return;
 		for (const cb of arr) {
-			try { cb(event); } catch { /* 吞掉回调异常 */ }
+			try { cb(event); } catch (e) { console.error(e) }
 		}
 	}
 

@@ -98,11 +98,11 @@ export class InputStack {
 		window.addEventListener('keydown', this._onKeyDown);
 		window.addEventListener('keyup', this._onKeyUp);
 		this.domElement.addEventListener('mousedown', this._onMouseDown);
-		this.domElement.addEventListener('mouseup', this._onMouseUp);
+		window.addEventListener('mouseup', this._onMouseUp);
 		this.domElement.addEventListener('wheel', this._onWheel);
 		this.domElement.addEventListener('mousemove', this._onMouseMove);
 		this.domElement.addEventListener('pointerdown', this._onPointerDown);
-		this.domElement.addEventListener('pointerup', this._onPointerUp);
+		window.addEventListener('pointerup', this._onPointerUp);
 		this.domElement.addEventListener('pointermove', this._onPointerMove);
 		this.domElement.addEventListener('pointercancel', this._onPointerCancel);
 		window.addEventListener('blur', this._onBlur);
