@@ -5,6 +5,9 @@ import { MouseInput } from './MouseInput.js';
 import type { PointerState } from './PointerInput.js';
 import { PointerInput } from './PointerInput.js';
 import { util } from '../utils/utils.js';
+import { GameCamera } from '@/objects/GameCamera.js';
+import { GameMap } from '@/map/index.js';
+import { uuid } from '@/utils/uuid.js';
 
 // ═══════════════════════════════════════════════════════════════
 // 内部包装类（同文件，访问 InputLayer 的 _ 前缀内部成员）
@@ -110,8 +113,8 @@ class InputLayerMouse {
 	 * @returns 交点坐标，无交点时返回 null
 	 */
 	positionInMap(
-		camera: THREE.PerspectiveCamera,
-		plane: THREE.Plane | THREE.Mesh,
+		camera: GameCamera,
+		plane: GameMap,
 	): THREE.Vector3 | null {
 		return MouseInput.inMapPosition(camera, plane);
 	}
@@ -194,7 +197,7 @@ class InputLayerPointer {
  *   inputStack.push(layer);
  */
 export class InputLayer {
-	readonly uuid = util.uuid();
+	readonly uuid = uuid();
 	readonly name: string;
 	readonly modal: boolean;
 	readonly blockKey: ReadonlyArray<string> | 'all';

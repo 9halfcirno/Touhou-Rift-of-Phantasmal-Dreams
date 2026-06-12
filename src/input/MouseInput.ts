@@ -1,3 +1,5 @@
+import { GameMap } from '@/map';
+import { GameCamera } from '@/objects';
 import * as THREE from 'three';
 
 /**
@@ -49,8 +51,8 @@ export const MouseInput = {
    * 计算鼠标在地图平面上的投影位置
    */
   inMapPosition(
-    camera: THREE.PerspectiveCamera,
-    plane: THREE.Plane | THREE.Mesh,
+    camera: GameCamera,
+    map: GameMap,
   ): THREE.Vector3 | null {
     const rect = this.domElement?.getBoundingClientRect() || {
       x: 0,
@@ -62,16 +64,16 @@ export const MouseInput = {
     this._mouse.x = (this.x / rect.width) * 2 - 1;
     this._mouse.y = -(this.y / rect.height) * 2 + 1;
 
-    this._raycaster.setFromCamera(this._mouse, camera);
+    this._raycaster.setFromCamera(this._mouse, camera.three.camera);
 
     // Mesh 检测
-    if (plane instanceof THREE.Mesh) {
-      const intersects = this._raycaster.intersectObject(plane);
+    if (map.three.ground instanceof THREE.Mesh) {
+      const intersects = this._raycaster.intersectObject(map.three.ground);
       return intersects.length > 0 ? intersects[0]!.point : null;
     }
 
     // Plane 检测
-    const pos = this._raycaster.ray.intersectPlane(plane, this._intersectionPoint);
+    const pos = this._raycaster.ray.intersectPlane(map.three.ground, this._intersectionPoint);
     if (pos) {
       this._intersectionPoint.set(pos.x, pos.y, pos.z);
       return this._intersectionPoint;
