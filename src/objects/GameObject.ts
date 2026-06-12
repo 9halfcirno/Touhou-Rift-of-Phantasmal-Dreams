@@ -1,8 +1,7 @@
 import * as THREE from 'three';
-import { Position, Vector2 } from '../math/Position.js';
-import { util } from '../utils/utils.js';
-import { Config } from '../core/Config.js';
-import { uuid } from '@/utils/uuid.js';
+import { Position, Vector2 } from '../math/Position.ts';
+import { Config } from '../core/Config.ts';
+import { uuid } from '@/utils/uuid.ts';
 
 /**
  * 游戏对象基类

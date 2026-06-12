@@ -1,13 +1,12 @@
 import * as THREE from 'three';
-import type { KeyState } from './KeyboardInput.js';
-import type { WheelState } from './MouseInput.js';
-import { MouseInput } from './MouseInput.js';
-import type { PointerState } from './PointerInput.js';
-import { PointerInput } from './PointerInput.js';
-import { util } from '../utils/utils.js';
-import { GameCamera } from '@/objects/GameCamera.js';
-import { GameMap } from '@/map/index.js';
-import { uuid } from '@/utils/uuid.js';
+import type { KeyState } from './KeyboardInput.ts';
+import type { WheelState } from './MouseInput.ts';
+import { MouseInput } from './MouseInput.ts';
+import type { PointerState } from './PointerInput.ts';
+import { PointerInput } from './PointerInput.ts';
+import { GameCamera } from '@/objects/GameCamera.ts';
+import { GameMap } from '@/map/index.ts';
+import { uuid } from '@/utils/uuid.ts';
 
 // ═══════════════════════════════════════════════════════════════
 // 内部包装类（同文件，访问 InputLayer 的 _ 前缀内部成员）

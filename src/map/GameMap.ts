@@ -137,7 +137,7 @@ export class GameMap {
 
   addEntity(ent: Entity): void {
     if (ent.manager !== this.entityManager) {
-      ent.manager.removeEntity(ent);
+      ent.manager && ent.manager.removeEntity(ent);
       this.entityManager.addEntity(ent);
     }
     this.addObject(ent);

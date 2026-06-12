@@ -21,7 +21,7 @@ export class Entity extends GameObject2D {
   readonly thid: string;
 
   /** 所属实体管理器 */
-  protected manager: EntityManager | null;
+  manager: EntityManager | null;
 
   /** 是否存活 */
   isAlive = true;
