@@ -89,10 +89,10 @@ async function init() {
 	game.scene.currentMap!.addEntity(entity);
 
 	// 6. 创建敌人实体
-	const enemy = sebMap.entityManager.createEntity(
+	const enemy = game.scene.currentMap!.entityManager.createEntity(
 		'th:entity=enemy/fairy',
 	);
-	sebMap.addObject(enemy);
+	mainMap.addObject(enemy);
 
 	enemy.position.set(4, 0, 4);
 

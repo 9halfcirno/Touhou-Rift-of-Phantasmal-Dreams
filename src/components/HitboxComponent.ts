@@ -20,6 +20,8 @@ export interface HitboxBox {
 export interface HitboxBase {
   /** 碰撞组：相同非零 group 的实体之间不会碰撞。默认 0（不分组） */
   group?: number;
+  /** 是否可被推动 */
+  pushable?: boolean;
 }
 
 export type HitboxData = (HitboxCircle | HitboxBox) & HitboxBase;
@@ -42,6 +44,7 @@ export class HitboxComponent extends Component<HitboxData> {
   width?: number;
   height?: number;
   rotation?: number;
+  pushable: boolean;
 
   /** 碰撞组：相同非零 group 的实体之间不会碰撞 */
   group: number;
@@ -51,6 +54,7 @@ export class HitboxComponent extends Component<HitboxData> {
     
     this.shape = data.shape;
     this.group = data.group ?? 0;
+    this.pushable = data.pushable ?? true;
 
     if (data.shape === SHAPES.CIRCLE) {
       this.r = data.r;
