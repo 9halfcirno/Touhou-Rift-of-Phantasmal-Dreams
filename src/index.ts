@@ -40,7 +40,7 @@ export { Texture } from './graphics/Texture.js';
 export { TextureLoader, setRunPath } from './graphics/TextureLoader.js';
 
 // ─── 工具 ───────────────────────────────────────
-export { util } from './utils/utils.js';
+export { uuid } from './utils/uuid.ts';
 
 // ─── 数学 ───────────────────────────────────────
 export { Position, Vector2, Vector3 } from './math/Position.js';

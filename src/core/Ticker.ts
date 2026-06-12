@@ -1,4 +1,4 @@
-import { util } from '../utils/utils.js';
+import { uuid } from "@/utils/uuid.ts"
 
 /**
  * 通用回调注册器（轻量级事件循环）
@@ -14,7 +14,7 @@ export class Ticker {
   static animationFrameId: number | null = null;
 
   constructor(name?: string) {
-    this.name = name || util.uuid();
+    this.name = name || uuid();
     if (name && Ticker.tickers.has(name)) {
       console.warn(`[Ticker] Ticker "${name}" 已存在`);
     }

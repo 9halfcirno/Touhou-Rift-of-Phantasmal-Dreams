@@ -7,6 +7,7 @@ import { THREEManager } from '../managers/THREEManager.js';
 import type { RuntimeConfig } from './types.js';
 import { InputLayer } from '@/input/InputLayer.js';
 import { type Game } from './Game.js';
+import { GameCamera } from '@/objects/GameCamera.js';
 
 /**
  * 游戏场景（Three.js 渲染管理层）
@@ -27,6 +28,8 @@ export class GameScene {
 
 	readonly domElement: HTMLCanvasElement;
 
+	readonly game: Game;
+
 	/** 游戏地图集合 */
 	private gameMaps = new Map<string, GameMap>();
 
@@ -34,7 +37,10 @@ export class GameScene {
 	currentMap: GameMap | null = null;
 
 	/** 当前使用的摄像机 */
-	currentCamera: THREE.PerspectiveCamera;
+	camera: GameCamera;
+
+	/** 默认摄像机, 在没有地图的时候使用该相机 */
+	defaultCamera: GameCamera;
 
 	/** Debug 相关 */
 	private debug: Record<string, any> | null = null;
@@ -55,6 +61,7 @@ export class GameScene {
 		renderer.shadowMap.enabled = true;
 
 		this.domElement = args.game.canvas;
+		this.game = args.game;
 
 		// 灯光
 		const ambLight = new THREE.AmbientLight(0xffffff, 0.1);
@@ -69,7 +76,8 @@ export class GameScene {
 		scene.add(dirLight.target);
 
 		this.three = { scene, camera, renderer, ambLight, dirLight };
-		this.currentCamera = camera;
+		this.defaultCamera = new GameCamera(camera);
+		this.camera = this.defaultCamera;
 
 		if (Config.enable_shadows) {
 			this.setupShadows();
@@ -98,7 +106,7 @@ export class GameScene {
 
 	private _updateLightPosition(): void {
 		const dl = this.three.dirLight;
-		const cam = this.currentCamera;
+		const cam = this.camera;
 		dl.position.copy(cam.position);
 
 		const { x: cx, y: cy, z: cz } = cam.position;
@@ -133,20 +141,29 @@ export class GameScene {
 
 		this.three.scene.add(this.debug.grid);
 
-		this.debug.camera = new THREE.PerspectiveCamera(
+		this.debug.camera = new GameCamera(new THREE.PerspectiveCamera(
 			60,
 			this.three.camera.aspect,
 			0.1,
 			1000,
-		);
-		this.debug.controls = new OrbitControls(this.debug.camera, this.domElement);
+		));
+		this.debug.camera.three.camera.position.set(5, 5, 5)
+		this.debug.controls = new OrbitControls(this.debug.camera.three.camera, this.domElement);
 		this.debug.controls.enabled = false;
+		this.game.InputStack.bottom.keyboard.onKey("F1", (e) => {
+			if (!e.down) return;
+			this.camera = (this.camera === this.debug!.camera ? this.currentMap!.camera : this.debug!.camera);
+			this.debug!.controls.enabled = !this.debug!.controls.enabled;
+		})
+		this.game.addRenderCallback(() => {
+			this.debug?.controls?.update();
+		})
 		this.debug.camera.position.set(2, 2, 2);
 	}
 
 	refreshThreeArgs(args: { aspect?: number; width: number; height: number }): void {
-		this.currentCamera.aspect = args.aspect ?? args.width / args.height;
-		this.currentCamera.updateProjectionMatrix();
+		this.camera.three.camera.aspect = args.aspect ?? args.width / args.height;
+		this.camera.three.camera.updateProjectionMatrix();
 		this.three.renderer.setSize(args.width, args.height);
 	}
 
@@ -155,8 +172,7 @@ export class GameScene {
 	render(opts: { progress?: number } = {}): void {
 		this.currentMap?.tweenThree(opts.progress ?? 1);
 		this._updateLightPosition();
-		this.debug?.controls?.update();
-		this.three.renderer.render(this.three.scene, this.currentCamera);
+		this.three.renderer.render(this.three.scene, this.camera.three.camera || this.defaultCamera.three.camera);
 	}
 
 	// ─── 逻辑更新 ─────────────────────────────────
@@ -198,7 +214,7 @@ export class GameScene {
 		this.currentMap?._exitScene();
 		this.currentMap = map;
 		map._enterScene();
-		this.currentCamera = map.camera.three.camera || this.three.camera;
+		this.camera = map.camera || this.three.camera;
 	}
 
 	removeGameMap(map: GameMap): void {
@@ -210,6 +226,9 @@ export class GameScene {
 		if (!found) return;
 
 		this.gameMaps.delete(map.id);
+		if (this.camera === found.camera) {
+			this.camera = this.defaultCamera;
+		}
 		found._exitScene();
 		this.three.scene.remove(found.three.group!);
 	}
