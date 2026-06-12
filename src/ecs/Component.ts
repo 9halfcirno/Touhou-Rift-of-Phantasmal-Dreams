@@ -1,81 +1,39 @@
-import type { ComponentType, ComponentTypeMap } from '../core/types.js';
+export class Component<D = any> {
+  type: string;
+  data: D;
 
-/**
- * ECS 组件基类
- *
- * 泛型 T 为组件数据类型（从 ComponentTypeMap 推导）。
- * 子类在模块底部通过 Component.register() 注册。
- *
- * 迁移自 code/entity_components/component.js
- */
-export abstract class Component<T = unknown> {
-  /** 组件类型标识（如 "th:hp"） */
-  readonly type: string;
+  private static _component = new Map<string, new (...args: any[]) => Component>()
 
-  /** 组件数据 */
-  data: T;
+  private static _componentData = new Map<new (...args: any[]) => Component, unknown>()
 
-  constructor(type: string, data: T) {
+  constructor(type: string, data: D) {
     this.type = type;
     this.data = data;
   }
 
-  /** 获取组件值（由子类实现） */
-  abstract get value(): T;
-
-  /** 设置组件值（由子类实现） */
-  abstract set value(v: T);
-
-  // ─── 静态注册表 ────────────────────────────────
-
-  /** 组件类型 → 构造函数 */
-  private static _registry = new Map<string, new (data: unknown) => Component<unknown>>();
-
-  /**
-   * 注册组件
-   *
-   * @example
-   *   Component.register('th:speed', SpeedComponent);
-   */
-  static register(type: string, ctor: new (data: unknown) => Component<unknown>): void {
-    Component._registry.set(type, ctor);
+  static register<C extends new (...args: any[]) => Component, D>(type: string, com: C, data?: D) {
+    this._component.set(type, com); // 存放类构造器
+    this._componentData.set(com, data); // 存放组件数据
   }
 
-  /**
-   * 创建组件实例（工厂方法）
-   *
-   * 如果 type 未注册，返回一个退化的普通对象包装。
-   */
-  static create<K extends ComponentType>(
-    type: K,
-    data?: ComponentTypeMap[K],
-  ): Component<ComponentTypeMap[K]> {
-    const Ctor = Component._registry.get(type);
+  static create(type: string, data: unknown): Component {
+    // get component class object
+    let Com = this._component.get(type);
 
-    if (!Ctor) {
-      // 退化：未注册的组件返回基础实现
-      // console.warn(`[Component] 未注册的组件类型: ${type}`);
-      return new FallbackComponent(type, data) as unknown as Component<ComponentTypeMap[K]>;
+    if (Com) {
+      let componentData = this._componentData.get(Com);
+      return new Com(componentData || data)
+    } else {
+      return new FallComponent(type, data);
     }
-
-    return new Ctor(data) as Component<ComponentTypeMap[K]>;
   }
 
-  /**
-   * 检查组件类型是否已注册
-   */
-  static has(type: string): boolean {
-    return Component._registry.has(type);
-  }
+  destory(): void { }
 }
 
-// ─── 退化组件（用于未注册类型）──────────────────
-
-class FallbackComponent<T> extends Component<T> {
-  get value(): T {
-    return this.data;
-  }
-  set value(v: T) {
-    this.data = v;
+class FallComponent extends Component<any> {
+  constructor(type: string, data: any) {
+    super(`th:!fall_match=${type}`, data);
+    if (this.data.type) debugger;
   }
 }

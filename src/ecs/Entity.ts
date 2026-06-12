@@ -6,7 +6,7 @@ import { Component } from './Component.js';
 import { EntityManager } from './EntityManager.js';
 import { THID } from '../resources/THID.js';
 import { Position, Vector2, Vector3 } from '../math/Position.js';
-import type { ComponentType, EntityDefinition } from '../core/types.js';
+import type { EntityDefinition } from '../core/types.js';
 
 /**
  * 游戏实体（ECS 中的 Entity）
@@ -21,7 +21,7 @@ export class Entity extends GameObject2D {
   readonly thid: string;
 
   /** 所属实体管理器 */
-  readonly manager: EntityManager;
+  protected manager: EntityManager | null;
 
   /** 是否存活 */
   isAlive = true;
@@ -30,7 +30,7 @@ export class Entity extends GameObject2D {
   spawnTime: number;
 
   /** 组件映射（type → Component） */
-  readonly components = new Map<string, Component>();
+  components: null | Map<string, Component> = new Map();
 
   /** 注册实体定义 */
   static async register(thid: string): Promise<EntityDefinition> {
@@ -183,38 +183,37 @@ export class Entity extends GameObject2D {
 
   /** 实体死亡 */
   die(): void {
+    if (!this.isAlive) return;
     this.isAlive = false;
-    this.manager.removeEntity(this.uuid);
+    this.manager!.removeEntity(this.uuid);
     this._disposeThree();
+    // 销毁其他数据
+    this.manager = null;
+    this.components = null;
   }
 
   // ─── 组件操作 ─────────────────────────────────
 
-  /** 类型安全的组件获取 */
-  getComponent<K extends ComponentType>(
-    type: K,
-  ): Component | undefined {
-    return this.components.get(type);
+  /** 获取组件 */
+  getComponent(type: string): Component | undefined {
+    return this.components?.get(type);
   }
 
   /** 获取组件值 */
-  getComponentValue<K extends ComponentType>(
-    type: K,
-  ): import('../core/types.js').ComponentTypeMap[K] | null {
-    const component = this.components.get(type);
+  getComponentValue(type: string): any {
+    const component = this.components?.get(type);
     if (!component) return null;
-    return component.value as import('../core/types.js').ComponentTypeMap[K];
+    return component.data;
   }
 
   /** 设置组件（接受任意 type/data 以兼容 JSON 加载） */
   setComponent(type: string, data: unknown): Component {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const component = Component.create(type as ComponentType, data as any);
-
-    this.components.set(type, component);
+    const component = Component.create(type, data);
+    
+    this.components?.set(type, component);
 
     if (!this._initializing) {
-      this.manager.onComponentAdded(this, type);
+      this.manager?.onComponentAdded(this, type);
     }
 
     return component;
@@ -222,32 +221,47 @@ export class Entity extends GameObject2D {
 
   /** 设置组件值（存在则更新，不存在则创建） */
   setComponentValue(type: string, value: unknown): void {
-    const component = this.components.get(type);
+    const component = this.components!.get(type);
 
     if (component) {
-      component.value = value;
+      component.data = value;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const com = Component.create(type as ComponentType, value as any);
-      this.components.set(type, com);
+      const com = Component.create(type, value);
+      this.components?.set(type, com);
 
       if (!this._initializing) {
-        this.manager.onComponentAdded(this, type);
+        this.manager?.onComponentAdded(this, type);
       }
     }
   }
 
   /** 是否存在某组件 */
   hasComponent(type: string): boolean {
-    return this.components.has(type);
+    return this.components?.has(type) || false;
+  }
+
+  addComponent(c: Component) {
+    if (this.hasComponent(c.type)) console.warn(`[Entity] 已有 ${c.type} 组件, 将覆盖原组件`);
+    
+    this.components!.set(c.type, c);
+
+    if (!this._initializing) {
+      this.manager?.onComponentAdded(this, c.type);
+    }
   }
 
   /** 移除组件 */
   removeComponent(type: string): boolean {
-    const existed = this.components.delete(type);
+    if (!this.isAlive) {
+      console.error(`[Enttiy] 实体已被销毁, 无法调用该方法`);
+      return false;
+    }
+    
+
+    const existed = this.components!.delete(type);
 
     if (existed) {
-      this.manager.onComponentRemoved(this, type);
+      this.manager?.onComponentRemoved(this, type);
     }
 
     return existed;

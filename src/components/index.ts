@@ -4,15 +4,6 @@
  * 导入此文件即可自动注册所有组件到 Component.registry。
  */
 
-// 副作用导入（模块顶层执行 Component.register()）
-import './HealthyComponent.js';
-import './SpeedComponent.js';
-import './HitboxComponent.js';
-import './MaxLifeTimeComponent.js';
-import './FamilyComponent.js';
-import './PlayerControlsComponent.js';
-import './BulletComponent.js';
-
 // 类型导出
 export { HealthyComponent } from './HealthyComponent.js';
 export type { HealthData } from './HealthyComponent.js';
@@ -23,3 +14,4 @@ export { MaxLifeTimeComponent } from './MaxLifeTimeComponent.js';
 export { FamilyComponent } from './FamilyComponent.js';
 export { PlayerControlsComponent } from './PlayerControlsComponent.js';
 export { BulletComponent } from './BulletComponent.js';
+export { DamageComponent } from "./DamageComponent.js";

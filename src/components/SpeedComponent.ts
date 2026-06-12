@@ -19,7 +19,7 @@ export class SpeedComponent extends Component<number> {
   }
 }
 
-Component.register('th:speed', SpeedComponent as unknown as new (data: unknown) => Component<unknown>);
+Component.register('th:speed', SpeedComponent);
 
 // ─── Module Augmentation: 向 ComponentTypeMap 注入本组件类型 ──
 declare module '../core/types.js' {

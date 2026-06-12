@@ -48,7 +48,7 @@ export class HitboxComponent extends Component<HitboxData> {
 
   constructor(data: HitboxData) {
     super('th:hitbox', data);
-
+    
     this.shape = data.shape;
     this.group = data.group ?? 0;
 
@@ -60,18 +60,9 @@ export class HitboxComponent extends Component<HitboxData> {
       this.rotation = data.rotation;
     }
   }
-
-  get value(): HitboxData {
-    return { ...this.data, group: this.group };
-  }
-
-  set value(v: HitboxData) {
-    this.group = v.group ?? 0;
-    Object.assign(this, v);
-  }
 }
 
-Component.register('th:hitbox', HitboxComponent as unknown as new (data: unknown) => Component<unknown>);
+Component.register('th:hitbox', HitboxComponent);
 
 // ─── Module Augmentation: 向 ComponentTypeMap 注入本组件类型 ──
 declare module '../core/types.js' {

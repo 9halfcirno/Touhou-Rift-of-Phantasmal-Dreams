@@ -22,7 +22,7 @@ export class MaxLifeTimeComponent extends Component<number> {
 
 Component.register(
   'th:max_life_time',
-  MaxLifeTimeComponent as unknown as new (data: unknown) => Component<unknown>,
+  MaxLifeTimeComponent,
 );
 
 // ─── Module Augmentation: 向 ComponentTypeMap 注入本组件类型 ──

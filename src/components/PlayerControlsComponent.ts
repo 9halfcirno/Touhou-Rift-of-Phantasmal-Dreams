@@ -22,7 +22,7 @@ export class PlayerControlsComponent extends Component<Record<string, unknown>> 
 
 Component.register(
   'th:player_controls',
-  PlayerControlsComponent as unknown as new (data: unknown) => Component<unknown>,
+  PlayerControlsComponent,
 );
 
 // ─── Module Augmentation: 向 ComponentTypeMap 注入本组件类型 ──
