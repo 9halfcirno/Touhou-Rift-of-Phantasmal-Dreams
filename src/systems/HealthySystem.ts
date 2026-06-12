@@ -17,19 +17,10 @@ export class HealthySystem extends System {
 
   override update({ entities, frame }: SystemUpdateContext): void {
     for (const entity of entities) {
-      const hpComp = (entity as { getComponent: (type: string) => { value: number } | undefined }).getComponent('th:hp');
-      if (hpComp && hpComp.value <= 0) {
-        (entity as { die: () => void }).die();
+      const hpComp = entity.getComponent('th:hp');
+      if (hpComp && hpComp.data.hp <= 0) {
+        entity.die();
         continue;
-      }
-
-      // 检查最大存活时间（MaxLifeTimeSystem 也做了，此处作为冗余保护）
-      if ((entity as { hasComponent: (t: string) => boolean }).hasComponent('th:max_life_time')) {
-        const time = (entity as { getComponent: (type: string) => { value: number } | undefined }).getComponent('th:max_life_time')?.value;
-        const spawnTime = (entity as { spawnTime: number }).spawnTime;
-        if (typeof time === 'number' && frame - spawnTime > time) {
-          (entity as { die: () => void }).die();
-        }
       }
     }
   }

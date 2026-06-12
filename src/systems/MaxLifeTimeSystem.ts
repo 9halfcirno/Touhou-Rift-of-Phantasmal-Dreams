@@ -17,11 +17,11 @@ export class MaxLifeTimeSystem extends System {
 
   override update({ entities, frame }: SystemUpdateContext): void {
     for (const entity of entities) {
-      const time = (entity as { getComponentValue: (type: string) => number | null }).getComponentValue('th:max_life_time');
-      const spawnTime = (entity as { spawnTime: number }).spawnTime;
+      const time = entity.getComponentValue('th:max_life_time');
+      const spawnTime = entity.spawnTime;
 
       if (typeof time === 'number' && frame - spawnTime > time) {
-        (entity as { die: () => void }).die();
+        entity.die();
       }
     }
   }

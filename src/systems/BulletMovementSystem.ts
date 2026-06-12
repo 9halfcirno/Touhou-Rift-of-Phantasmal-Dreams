@@ -17,7 +17,7 @@ export class BulletMovementSystem extends System {
 
   override update({ entities }: SystemUpdateContext): void {
     for (const entity of entities) {
-      (entity as { step: () => void }).step();
+      entity.step();
     }
   }
 }

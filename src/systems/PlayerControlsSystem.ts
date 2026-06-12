@@ -43,8 +43,8 @@ export class PlayerControlsSystem extends System {
 
       if (input.keyboard.key(' ').down) {
         const mousePos = input.mouse.positionInMap(
-          game.scene.currentCamera,
-          (world as { three: { ground: THREE.Plane } }).three.ground,
+          game.scene.camera,
+          world,
         );
         if (mousePos) {
           entity.faceTo({ x: mousePos.x, y: mousePos.y, z: -mousePos.z });
@@ -54,8 +54,8 @@ export class PlayerControlsSystem extends System {
 
       if (input.pointer.isDown/*input.mouse.leftButton*/) {
         const mousePos = input.mouse.positionInMap(
-          game.scene.currentCamera,
-          (world as { three: { ground: THREE.Plane } }).three.ground,
+          game.scene.camera,
+          world,
         );
         if (mousePos) {
           const wm = world as {

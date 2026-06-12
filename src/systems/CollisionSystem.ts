@@ -19,17 +19,11 @@ export class CollisionSystem extends System {
   }
 
   override update({ entities }: SystemUpdateContext): void {
-    const entityList = [...entities] as unknown as Array<{
-      position: { x: number; y: number; z: number };
-      rotation: { x: number };
-      moveBy: (x: number, y: number, z: number) => void;
-      emit?: (event: string, data: Record<string, unknown>) => void;
-      getComponent: (type: string) => HitboxComponent | undefined;
-    }>;
+    const entityList = [...entities];
 
     for (let i = 0; i < entityList.length; i++) {
       const entityA = entityList[i]!;
-      const hitboxA = entityA.getComponent('th:hitbox');
+      const hitboxA = entityA.getComponent('th:hitbox') as HitboxComponent;
       if (!hitboxA) continue;
 
       const shapeA = buildShape(entityA, hitboxA);
@@ -37,7 +31,7 @@ export class CollisionSystem extends System {
 
       for (let j = i + 1; j < entityList.length; j++) {
         const entityB = entityList[j]!;
-        const hitboxB = entityB.getComponent('th:hitbox');
+        const hitboxB = entityB.getComponent('th:hitbox') as HitboxComponent;
         if (!hitboxB) continue;
 
         const shapeB = buildShape(entityB, hitboxB);
@@ -55,15 +49,15 @@ export class CollisionSystem extends System {
         entityA.moveBy(-mtv.x * ratio, 0, -mtv.y * ratio);
         entityB.moveBy(mtv.x * ratio, 0, mtv.y * ratio);
 
-        entityA.emit?.('collision', { other: entityB, result });
-        entityB.emit?.('collision', {
-          other: entityA,
-          result: {
-            ...result,
-            normal: result.normal ? { x: -result.normal.x, y: -result.normal.y } : undefined,
-            mtv: { x: -mtv.x, y: -mtv.y },
-          },
-        });
+        // entityA.emit?.('collision', { other: entityB, result });
+        // entityB.emit?.('collision', {
+        //   other: entityA,
+        //   result: {
+        //     ...result,
+        //     normal: result.normal ? { x: -result.normal.x, y: -result.normal.y } : undefined,
+        //     mtv: { x: -mtv.x, y: -mtv.y },
+        //   },
+        // });
       }
     }
   }

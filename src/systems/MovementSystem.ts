@@ -17,7 +17,7 @@ export class MovementSystem extends System {
 
   override update({ entities }: SystemUpdateContext): void {
     for (const entity of entities) {
-      const movement = (entity as { movementVector: { x: number; y: number; z: number; set: (x: number, y: number, z: number) => void } }).movementVector;
+      const movement = entity.movementVector;
 
       if (movement.x === 0 && movement.y === 0 && movement.z === 0) {
         entity.clearTweenPos();
