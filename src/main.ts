@@ -46,7 +46,7 @@ let debugInput = new InputLayer("main-debug")
 game.InputStack.push(debugInput)
 
 debugInput.mouse.onWheel((wheel) => {
-	if (game.scene.currentMap?.camera.three.camera === game.scene.currentCamera) {
+	if (game.scene.currentMap?.camera === game.scene.camera) {
 		TH.Config.camera_distance += wheel.y * 0.01;
 	}
 });
@@ -58,7 +58,8 @@ async function init() {
 	// 1. 启用 debug 模式（Grid + OrbitControls）
 	await game.$debug({
 		console: true,
-		fpsAndTps: true
+		fpsAndTps: true,
+		scene: true
 	});
 
 	// 2. 加载地图
@@ -95,10 +96,11 @@ async function init() {
 
 	enemy.position.set(4, 0, 4);
 
+	let tex = await (TH.TextureLoader.get("th:texture=entity/reimu"));
 
 	let uiLayer = new TH.UILayer(game.ui.pixi.app.stage);
 	uiLayer.display();
-	let icon = new PIXI.Sprite((await TH.TextureLoader.get("th:texture=entity/reimu"))!.toPIXI(
+	let icon = new PIXI.Sprite(tex!.toPIXI(
 		game.scene.three.renderer,
 		game.ui.pixi.app.renderer,
 	));
@@ -128,9 +130,11 @@ async function init() {
 	// 9. Z 键扣血
 	debugInput.keyboard.onKey('z', (k) => {
 		if (k.down) return;
-		const comp = entity.getComponent('th:hp');
-		if (comp) (comp as { value: number }).value -= 1;
-		console.log('z pressed - hp:', entity.getComponentValue('th:hp'));
+		entity.addComponent(TH.Component.create("th:damage", {
+			value: 1
+		}))
+		if (!entity.isAlive) debugger;
+		console.log('z pressed - hp:');
 	});
 
 	// 10. R 键移除地图
@@ -156,8 +160,8 @@ async function init() {
 	// 11. Tick 回调：更新 debug 信息
 	game.addTickCallback(() => {
 		const point = TH.MouseInput.inMapPosition(
-			game.scene.currentCamera,
-			mainMap.three.ground,
+			game.scene.camera,
+			game.scene.currentMap || mainMap,
 		);
 		if (point) {
 			debugSphere.position.set(point.x, point.y, point.z);
@@ -166,7 +170,7 @@ async function init() {
 		const pos = entity.position;
 		debugDiv.innerHTML = [
 			`player x: ${pos.x.toFixed(2)}, y: ${pos.y.toFixed(2)}, z: ${pos.z.toFixed(2)}`,
-			`player hp: ${entity.getComponentValue('th:hp')}`,
+			`player hp: ${entity.getComponent('th:hp')?.data?.hp || 0}`,
 			`entity count: ${game.scene.currentMap!.entityManager.getAllEntities().length}`,
 			`frame: ${game.scene.currentMap!.frame}`,
 			`renderDelta: ${game.RenderSystem.renderDelta.toFixed(3)}s`,
