@@ -77,51 +77,26 @@ export class Texture {
 		b && this.pixi.texture?.update();
 	}
 
-	toPIXI(
-		threeRenderer: THREE.WebGLRenderer,
-		pixiRenderer: PIXI.Renderer
-	): PIXI.Texture {
+	toPIXI(): PIXI.Texture {
 		if (this.pixi.texture) return this.pixi.texture;
 
-		threeRenderer.initTexture(this.three.texture);
+		let image = this.three.texture.image;
 
-		// 2. 掏出 Three.js 隐藏在底层的 WebGLTexture 原生对象
-		const properties = threeRenderer.properties.get(this.three.texture);
-		const glTexture: WebGLTexture = (properties as any).__webglTexture;
-
-		if (!glTexture) {
-			throw new Error("未能获取到 Three.js 的 WebGLTexture 喵！请确保纹理已正确加载。");
-		}
-
-		const extSource = new PIXI.ExternalSource({
-			resource: glTexture,
-			renderer: pixiRenderer,
-			width: this.three.texture.image.width,
-			height: this.three.texture.image.height,
-		})
-		extSource.alphaMode = "no-premultiply-alpha";
-
-		let pixiTex = new PIXI.Texture({
-			source: extSource
-		})
+		let pixiTex = PIXI.Texture.from(image);
 
 		this.pixi.texture = pixiTex
-
 		return pixiTex;
 	}
 
 	disposePIXI() {
 		if (this.pixi.texture) {
-			this.pixi.texture.destroy(false); // 不销毁底层资源
+			this.pixi.texture.destroy(true);
 			this.pixi.texture = undefined;
 		}
 	}
 
 	dispose(): void {
-		if (this.pixi.texture) {
-			this.pixi.texture.destroy(true);
-			this.pixi.texture = undefined;
-		}
+		this.disposePIXI();
 		this.three.texture.dispose();
 		this.destoryed = true;
 	}

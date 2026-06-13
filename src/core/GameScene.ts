@@ -51,8 +51,6 @@ export class GameScene {
 		camera.name = 'Camera_default';
 
 		const renderer = new THREE.WebGLRenderer({
-			canvas: args.game.canvas,
-			context: args.game.webGL2Context,
 			antialias: true
 		});
 		renderer.setSize(args.width, args.height);
@@ -60,7 +58,9 @@ export class GameScene {
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.shadowMap.enabled = true;
 
-		this.domElement = args.game.canvas;
+		this.domElement = renderer.domElement;
+		this.domElement.id = `${args.game.domElement.id}-scene-canvas`;
+		this.domElement.style.position = "absolute";
 		this.game = args.game;
 
 		// 灯光

@@ -7,29 +7,34 @@ export class GameUI {
 	};
 	private _orgWidth: number;
 	private _orgHeight: number;
-	public domElement: HTMLCanvasElement | null = null;
+	public domElement: HTMLCanvasElement;
 
 	constructor(opts: {
 		width: number,
 		height: number,
-		game: Game
+		game: Game,
+		canvas: HTMLCanvasElement
 	}) {
-		this.domElement = opts.game.canvas;
 		this._orgWidth = opts.width;
 		this._orgHeight = opts.height;
+		this.domElement = opts.canvas;
+		this.domElement.id = `${opts.game.domElement.id}-ui-scene`;
+		this.domElement.style.position = "absolute";
+		this.domElement.style.pointerEvents = "none";
 	}
 
 	async init(game: Game) {
 		await this.pixi.app.init({
-			context: game.webGL2Context,
-			canvas: game.canvas,
+			canvas: this.domElement,
+			preference: "webgl",
 			width: this._orgWidth,
 			height: this._orgHeight,
 			backgroundAlpha: 0,
 			autoDensity: true,
-			clearBeforeRender: false
-			// resolution: window.devicePixelRatio
+			clearBeforeRender: false,
+			resolution: window.devicePixelRatio
 		})
+
 
 		this.pixi.app.renderer.events.autoPreventDefault = false;
 	}

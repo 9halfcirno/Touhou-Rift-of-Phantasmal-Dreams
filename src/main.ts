@@ -107,10 +107,7 @@ async function init() {
 
 	let uiLayer = new TH.UILayer(game.ui.pixi.app.stage);
 	uiLayer.display();
-	let icon = new PIXI.Sprite(tex!.toPIXI(
-		game.scene.three.renderer,
-		game.ui.pixi.app.renderer,
-	));
+	let icon = new PIXI.Sprite(tex!.toPIXI());
 	icon.scale.set(3);
 
 	// console.log(icon);
@@ -166,7 +163,7 @@ async function init() {
 	
 	uiInput.keyboard.onKey("2", (k, e) => {
 		if (k.down)
-		console.log(game.InputStack.pop());
+		game.InputStack.pop();
 	})
 
 	uiInput.pointer.on("pointerdown", (w) => {

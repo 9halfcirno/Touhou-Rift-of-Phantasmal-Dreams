@@ -28,8 +28,6 @@ export class Game {
 	readonly MouseInput = MouseInput;
 	readonly InputStack: InputStack;
 	readonly domElement: HTMLDivElement;
-	readonly canvas: HTMLCanvasElement;
-	readonly webGL2Context: WebGL2RenderingContext;
 	private _inited: boolean = false;
 
 	private _afterTickCallbacks: Array<(ctx: { frame: number; game: Game }) => void> = [];
@@ -47,15 +45,6 @@ export class Game {
 		let domId = `THGame-${Date.now()}`;
 		this.domElement.id = domId;
 		this.domElement.style.position = "relative";
-		this.canvas = document.createElement("canvas");
-		this.canvas.style.position = "absolute";
-		this.domElement.append(this.canvas);
-
-		this.canvas.id = `${domId}-canvas`;
-		this.canvas.style.pointerEvents = "none";
-		let gl = this.canvas.getContext("webgl2");
-		if (!gl) throw new Error(`无法创建 WebGL2 上下文!请更新浏览器或系统 WebView !`);
-		this.webGL2Context = gl;
 
 		this.scene = new GameScene({
 			width: config.width,
@@ -63,11 +52,15 @@ export class Game {
 			game: this
 		});
 
+
+		let uiCanvas = document.createElement("canvas");
 		this.ui = new GameUI({
 			width: this.config.width,
 			height: this.config.height,
-			game: this
+			game: this,
+			canvas: uiCanvas
 		});
+		this.domElement.append(this.scene.domElement, this.ui.domElement);
 
 
 		this.InputStack = new InputStack(this.domElement);
@@ -126,9 +119,7 @@ export class Game {
 	}
 
 	private render(): void {
-		// this.scene.three.renderer.state.reset(); // 先关掉, 我发现three.js不重置渲染器状态也能正常画, 而且在部分场景可以节省15%的性能消耗
 		this.scene.render({ progress: this.TickSystem.tickP });
-		this.ui.pixi.app.renderer.resetState();
 		this.ui.render();
 		for (const f of this._afterRenderCallbacks) {
 			f?.({ frame: this.RenderSystem.frame, progress: this.TickSystem.tickP });
