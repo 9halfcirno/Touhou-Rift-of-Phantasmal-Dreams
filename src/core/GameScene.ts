@@ -214,7 +214,7 @@ export class GameScene {
 		this.currentMap?._exitScene();
 		this.currentMap = map;
 		map._enterScene();
-		this.camera = map.camera || this.three.camera;
+		this.camera = map.camera || this.defaultCamera;
 	}
 
 	removeGameMap(map: GameMap): void {
