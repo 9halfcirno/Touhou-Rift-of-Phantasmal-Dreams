@@ -155,7 +155,7 @@ export class GameScene {
 			this.camera = (this.camera === this.debug!.camera ? this.currentMap!.camera : this.debug!.camera);
 			this.debug!.controls.enabled = !this.debug!.controls.enabled;
 		})
-		this.game.addRenderCallback(() => {
+		this.game.afterRender(() => {
 			this.debug?.controls?.update();
 		})
 		this.debug.camera.position.set(2, 2, 2);
