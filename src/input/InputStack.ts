@@ -40,7 +40,7 @@ export class InputStack {
 
 	/** 弹出栈顶并返回 */
 	pop(): InputLayer | undefined {
-		if (this.bottomLayer.uuid === this._layers[0].uuid) return; // 保证最底层输入层不会被移出
+		if (this.bottomLayer.uuid === this._layers[this._layers.length - 1].uuid) return; // 保证最底层输入层不会被移出
 		const layer = this._layers.pop();
 		if (layer) layer._reset();
 		return layer;
