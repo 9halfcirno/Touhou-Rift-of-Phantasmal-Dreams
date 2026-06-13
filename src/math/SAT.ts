@@ -3,11 +3,13 @@
  *
  * 2D 碰撞检测：支持圆形-圆形、矩形-矩形（多边形）、圆形-矩形。
  * 返回 MTV（最小平移向量）用于碰撞分离。
- *
- * 迁移自 code/sat.js
+ * * [修复说明]: 
+ * 引入了接近容差（1e-4）与中心轴对齐权重。
+ * 修复了在角部碰撞时由于 X/Y 轴重叠量极度接近，导致分离轴频繁切换（物理挤压/抖动）的问题。
  */
 
 const EPS = 1e-6;
+const TOLERANCE = 1e-4; // 轴切换的重叠量容差
 
 // ─── 基础向量运算 ─────────────────────────────────
 
@@ -131,18 +133,38 @@ function polygonPolygon(A: PolyShape, B: PolyShape): SATResult {
   let minOverlap = Infinity;
   let smallestAxis: Vec2 | null = null;
 
+  // 预计算中心连线方向，用于后续比较权重以及法线修正
+  const centerDx = B.x - A.x;
+  const centerDy = B.y - A.y;
+  const centerDist = Math.hypot(centerDx, centerDy);
+  const centerDir = centerDist > EPS ? { x: centerDx / centerDist, y: centerDy / centerDist } : { x: 1, y: 0 };
+
   for (const axis of axes) {
     const projA = projectVerts(axis, vertsA);
     const projB = projectVerts(axis, vertsB);
     const o = overlap(projA, projB);
+
     if (o <= 0) return { intersects: false };
+
     if (o < minOverlap) {
-      minOverlap = o;
-      smallestAxis = axis;
+      // 容差判断：如果新的重叠量与当前最小重叠量非常接近
+      const isClose = (minOverlap !== Infinity) && (minOverlap - o < TOLERANCE);
+      if (isClose && smallestAxis) {
+        // 选择与物体中心连线方向更平行的轴，避免角部碰撞时在正交轴之间反复横跳
+        const currentAlignment = Math.abs(dot(centerDir, smallestAxis));
+        const newAlignment = Math.abs(dot(centerDir, axis));
+        if (newAlignment > currentAlignment) {
+          minOverlap = o;
+          smallestAxis = axis;
+        }
+      } else {
+        minOverlap = o;
+        smallestAxis = axis;
+      }
     }
   }
 
-  const centerDir = normalize({ x: B.x - A.x, y: B.y - A.y });
+  // 确保法线方向始终从 A 指向 B
   if (smallestAxis && dot(centerDir, smallestAxis) < 0) {
     smallestAxis = { x: -smallestAxis.x, y: -smallestAxis.y };
   }
@@ -187,7 +209,7 @@ function circlePolygon(circle: CircleShape, poly: PolyShape): SATResult {
 
   const axes = getAxes(verts);
 
-  // 找最近顶点 —— 圆心到该顶点的轴也需要检测
+  // 寻找距离圆心最近的顶点
   let closest = verts[0]!;
   let minDist = Infinity;
 
@@ -201,14 +223,18 @@ function circlePolygon(circle: CircleShape, poly: PolyShape): SATResult {
     }
   }
 
-  // 圆心 → 最近顶点轴
+  // 将圆心到最近顶点的轴加入检测
   const axisToCircle = { x: closest.x - circle.x, y: closest.y - circle.y };
-  const axisLen = axisToCircle.x * axisToCircle.x + axisToCircle.y * axisToCircle.y;
+  const axisLen = Math.hypot(axisToCircle.x, axisToCircle.y);
   if (axisLen > EPS) {
-    axes.push(normalize(axisToCircle));
+    axes.push({ x: axisToCircle.x / axisLen, y: axisToCircle.y / axisLen });
   }
 
-  // ─── SAT（多边形轴 + 圆心-顶点轴）──────────────
+  // 预计算中心方向，多边形指向圆形
+  const centerDx = poly.x - circle.x;
+  const centerDy = poly.y - circle.y;
+  const centerDist = Math.hypot(centerDx, centerDy);
+  const centerDir = centerDist > EPS ? { x: centerDx / centerDist, y: centerDy / centerDist } : { x: 1, y: 0 };
 
   let minOverlap = Infinity;
   let smallestAxis: Vec2 | null = null;
@@ -217,15 +243,26 @@ function circlePolygon(circle: CircleShape, poly: PolyShape): SATResult {
     const projA = projectVerts(axis, verts);
     const projB = projectCircle(axis, circle);
     const o = overlap(projA, projB);
+
     if (o <= 0) return { intersects: false };
+
     if (o < minOverlap) {
-      minOverlap = o;
-      smallestAxis = axis;
+      const isClose = (minOverlap !== Infinity) && (minOverlap - o < TOLERANCE);
+      if (isClose && smallestAxis) {
+        const currentAlignment = Math.abs(dot(centerDir, smallestAxis));
+        const newAlignment = Math.abs(dot(centerDir, axis));
+        if (newAlignment > currentAlignment) {
+          minOverlap = o;
+          smallestAxis = axis;
+        }
+      } else {
+        minOverlap = o;
+        smallestAxis = axis;
+      }
     }
   }
 
-  // 修正 normal 朝向
-  const centerDir = { x: poly.x - circle.x, y: poly.y - circle.y };
+  // 修正 normal 朝向：确保法线方向始终从 Circle 指向 Polygon
   if (smallestAxis && dot(centerDir, smallestAxis) < 0) {
     smallestAxis = { x: -smallestAxis.x, y: -smallestAxis.y };
   }
@@ -256,11 +293,12 @@ export function SAT(A: Shape, B: Shape): SATResult {
     return polygonPolygon(A as PolyShape, B as PolyShape);
   }
 
-  // 圆形 vs 多边形
+  // 圆形 vs 多边形：保证返回的 MTV 是 A(circle) 指向 B(polygon)
   if (A.shape === 'circle' && B.shape === 'polygon') {
     return circlePolygon(A as CircleShape, B as PolyShape);
   }
 
+  // 多边形 vs 圆形：复用上面的逻辑，但需要反转法线和 MTV
   if (A.shape === 'polygon' && B.shape === 'circle') {
     const result = circlePolygon(B as CircleShape, A as PolyShape);
     if (result.intersects && result.normal && result.mtv) {
