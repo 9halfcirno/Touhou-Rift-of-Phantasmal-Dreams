@@ -42,7 +42,8 @@ const debugDiv = document.getElementById('debug')!;
 
 // ─── 鼠标滚轮调整相机距离 ─────────────────────
 
-let debugInput = new InputLayer("main-debug")
+let debugInput = new InputLayer("main-debug");
+let uiInput = new InputLayer("ui-debug");
 game.InputStack.push(debugInput)
 
 debugInput.mouse.onWheel((wheel) => {
@@ -59,7 +60,8 @@ async function init() {
 	await game.$debug({
 		console: true,
 		fpsAndTps: true,
-		scene: true
+		scene: true,
+		debugDiv: true
 	});
 
 	// 2. 加载地图
@@ -96,6 +98,11 @@ async function init() {
 
 	enemy.position.set(4, 0, 4);
 
+	let playerHpUpdate = game.$addDebugItem("player hp", () => {
+		return entity.getComponent("th:hp")?.data.hp || 0;
+	})
+	
+
 	let tex = await (TH.TextureLoader.get("th:texture=entity/reimu"));
 
 	let uiLayer = new TH.UILayer(game.ui.pixi.app.stage);
@@ -111,6 +118,11 @@ async function init() {
 	uiLayer.pixi.group.addChild(
 		icon
 	)
+
+	icon.on("pointerdown", (e) => {
+		console.log("icon clicked!");
+	})
+	icon.eventMode = "static";	
 
 	// 7. 调试球（红色小球跟随鼠标）
 	const debugSphere = new THREE.Mesh(
@@ -147,7 +159,17 @@ async function init() {
 
 	// game.ui.pixi.app.renderer.removeAllListeners();
 	
-	debugInput.pointer.on("pointerdown", (w) => {
+	debugInput.keyboard.onKey("1", (k) => {
+		if (k.down)
+		game.InputStack.push(uiInput);
+	})
+	
+	uiInput.keyboard.onKey("2", (k, e) => {
+		if (k.down)
+		console.log(game.InputStack.pop());
+	})
+
+	uiInput.pointer.on("pointerdown", (w) => {
 		if (!w) return;
 		const clonedEvent = new PointerEvent(w.type, w);
 
@@ -158,7 +180,7 @@ async function init() {
 	})
 
 	// 11. Tick 回调：更新 debug 信息
-	game.addTickCallback(() => {
+	game.afterTick(() => {
 		const point = TH.MouseInput.inMapPosition(
 			game.scene.camera,
 			game.scene.currentMap || mainMap,
@@ -166,6 +188,7 @@ async function init() {
 		if (point) {
 			debugSphere.position.set(point.x, point.y, point.z);
 		}
+		playerHpUpdate();
 
 		const pos = entity.position;
 		debugDiv.innerHTML = [

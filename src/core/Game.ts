@@ -32,8 +32,8 @@ export class Game {
 	readonly webGL2Context: WebGL2RenderingContext;
 	private _inited: boolean = false;
 
-	private _tickCallbacks: Array<(ctx: { frame: number; game: Game }) => void> = [];
-	private _renderCallbacks: Array<(ctx: { frame: number; progress: number }) => void> = [];
+	private _afterTickCallbacks: Array<(ctx: { frame: number; game: Game }) => void> = [];
+	private _afterRenderCallbacks: Array<(ctx: { frame: number; progress: number }) => void> = [];
 
 	constructor(public config: {
 		width: number;
@@ -44,14 +44,15 @@ export class Game {
 		setRunPath(config.runPath);
 
 		this.domElement = document.createElement('div');
-		let domId = `THGame:${Date.now()}`;
+		let domId = `THGame-${Date.now()}`;
 		this.domElement.id = domId;
-		// this.domElement.style.position = "relative"
+		this.domElement.style.position = "relative";
 		this.canvas = document.createElement("canvas");
 		this.canvas.style.position = "absolute";
 		this.domElement.append(this.canvas);
 
 		this.canvas.id = `${domId}-canvas`;
+		this.canvas.style.pointerEvents = "none";
 		let gl = this.canvas.getContext("webgl2");
 		if (!gl) throw new Error(`无法创建 WebGL2 上下文!请更新浏览器或系统 WebView !`);
 		this.webGL2Context = gl;
@@ -78,7 +79,7 @@ export class Game {
 
 
 		this._bindEvents();
-		this.updateGameSize();
+		// this.updateGameSize();
 	}
 
 	async init() {
@@ -111,13 +112,13 @@ export class Game {
 
 	private tick(): void {
 		this.scene.update({ frame: this.TickSystem.frame, game: this });
-		for (const f of this._tickCallbacks) {
+		for (const f of this._afterTickCallbacks) {
 			f?.({ frame: this.TickSystem.frame, game: this });
 		}
 	}
 
-	addTickCallback(f: (ctx: { frame: number; game: Game }) => void): void {
-		this._tickCallbacks.push(f);
+	afterTick(f: (ctx: { frame: number; game: Game }) => void): void {
+		this._afterTickCallbacks.push(f);
 	}
 
 	startRender(): void {
@@ -125,17 +126,17 @@ export class Game {
 	}
 
 	private render(): void {
-		this.scene.three.renderer.state.reset();
+		// this.scene.three.renderer.state.reset(); // 先关掉, 我发现three.js不重置渲染器状态也能正常画, 而且在部分场景可以节省15%的性能消耗
 		this.scene.render({ progress: this.TickSystem.tickP });
 		this.ui.pixi.app.renderer.resetState();
 		this.ui.render();
-		for (const f of this._renderCallbacks) {
+		for (const f of this._afterRenderCallbacks) {
 			f?.({ frame: this.RenderSystem.frame, progress: this.TickSystem.tickP });
 		}
 	}
 
-	addRenderCallback(f: (ctx: { frame: number; progress: number }) => void): void {
-		this._renderCallbacks.push(f);
+	afterRender(f: (ctx: { frame: number; progress: number }) => void): void {
+		this._afterRenderCallbacks.push(f);
 	}
 
 	exit(): void {
@@ -187,6 +188,19 @@ export class Game {
 	} = {}) {
 		if (opts.console && window.navigator.platform !== "Win32") await import("eruda").then(() => eruda.init())
 		opts.scene && this.scene.$debug();
+		
+		if (opts.debugDiv) {
+			let debugDiv = document.createElement("div");
+			debugDiv.id = `${this.domElement.id}-debug`;
+			debugDiv.style.position = 'absolute';
+			debugDiv.style.bottom = "0";
+			debugDiv.style.left = "0";
+			debugDiv.style.opacity = "0.7";
+			debugDiv.style.fontSize = `16%`;
+			debugDiv.style.backgroundColor = "white";
+			debugDiv.style.padding = "5px";
+			this.domElement.append(debugDiv);
+		}
 
 		if (opts.fpsAndTps) {
 
@@ -203,13 +217,32 @@ export class Game {
 				statsFps.showPanel(0);
 				statsFps.dom.style.cssText = 'position:fixed;top:0;left:0;z-index:10000';
 				this.domElement.append(statsFps.dom);
-				this.addRenderCallback(() => {
+				this.afterRender(() => {
 					statsFps.update();
 				});
-				this.addTickCallback(() => {
+				this.afterTick(() => {
 					statsTps.update();
 				})
 			})
 		}
+	}
+
+	$addDebugItem(name: string, func: (game?: Game) => string | number | boolean): () => void {
+		let span = document.createElement("span");
+		span.style.whiteSpace = "pre-warp";
+		span.style.display = "block";
+
+		let div = document.querySelector(`#${this.domElement.id}-debug`);
+		if (div) {
+			div.append(span);
+		}
+
+		const update = () => {
+			let str = func(this);
+
+			span.innerHTML = `${name}: ${str}`;
+		}
+		update();
+		return update;
 	}
 }
