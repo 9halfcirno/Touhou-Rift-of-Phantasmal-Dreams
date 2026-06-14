@@ -7,6 +7,7 @@ import { PointerInput } from './PointerInput.ts';
 import { GameCamera } from '@/objects/GameCamera.ts';
 import { GameMap } from '@/map/index.ts';
 import { uuid } from '@/utils/uuid.ts';
+import type { InputStack } from './InputStack.js';
 
 // ═══════════════════════════════════════════════════════════════
 // 内部包装类（同文件，访问 InputLayer 的 _ 前缀内部成员）
@@ -201,6 +202,9 @@ export class InputLayer {
 	readonly modal: boolean;
 	readonly blockKey: ReadonlyArray<string> | 'all';
 
+	/** @internal 由 InputStack 注入的栈引用，用于 popFromStack() */
+	_stack: InputStack | null = null;
+
 	/** 键盘输入命名空间 */
 	readonly keyboard: InputLayerKeyboard;
 	/** 鼠标输入命名空间 */
@@ -384,6 +388,14 @@ export class InputLayer {
 		this._middleButton = false;
 		this._pointerDown = false;
 		this._pointerIds = [];
+	}
+
+	/**
+	 * 从当前所属 InputStack 中弹出自身。
+	 * 如果不在任何栈中（_stack 为 null），无操作。
+	 */
+	popFromStack(): void {
+		this._stack?.remove(this);
 	}
 
 	// ─── 私有方法 ──────────────────────────────────

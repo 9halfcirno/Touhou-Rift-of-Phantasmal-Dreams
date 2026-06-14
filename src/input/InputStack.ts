@@ -32,26 +32,31 @@ export class InputStack {
 
 	// ─── 层管理 ──────────────────────────────────
 
-	/** 压入栈顶（自动从旧位置移除） */
+	/** 压入栈顶（自动从旧位置移除，并注入 _stack 引用） */
 	push(layer: InputLayer): void {
 		this.remove(layer);
 		this._layers.push(layer);
+		layer._stack = this;
 	}
 
-	/** 弹出栈顶并返回 */
+	/** 弹出栈顶并返回（自动清除 _stack 引用） */
 	pop(): InputLayer | undefined {
 		if (this.bottomLayer.uuid === this._layers[this._layers.length - 1].uuid) return; // 保证最底层输入层不会被移出
 		const layer = this._layers.pop();
-		if (layer) layer._reset();
+		if (layer) {
+			layer._reset();
+			layer._stack = null;
+		}
 		return layer;
 	}
 
-	/** 从栈中任意位置移除 */
+	/** 从栈中任意位置移除（自动清除 _stack 引用） */
 	remove(layer: InputLayer): void {
 		const idx = this._layers.indexOf(layer);
 		if (idx !== -1) {
 			this._layers.splice(idx, 1);
 			layer._reset();
+			layer._stack = null;
 		}
 	}
 
