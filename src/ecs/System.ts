@@ -1,5 +1,6 @@
 import type { EntityQuery } from './EntityQuery.js';
 import type { ComponentType, SystemUpdateContext } from '../core/types.js';
+import { THID } from '@/resources/THID.js';
 
 /**
  * ECS 系统基类
@@ -55,16 +56,25 @@ export abstract class System {
    *   System.register('th:system=movement_system', MovementSystem);
    */
   static register(id: string, ctor: new () => System): void {
-    System._registry.set(id, ctor);
+    let thid = THID.parse(id);
+    if (thid.type !== null && thid.type !== "system") {
+      throw new Error(`[System] 注册的系统的thid类型必须为"system"或自动推断!`);
+    }
+    System._registry.set(`${thid.namespace}:${thid.id}`, ctor); // 用thid的id字段注册
   }
 
   /**
    * 创建系统实例
    */
   static create(id: string): System {
-    const Ctor = System._registry.get(id);
+    let thid = THID.parse(id);
+    if (thid.type !== null && thid.type !== "system") {
+      throw new Error(`[System] 创建系统时的thid类型必须为"system"或自动推断!`);
+    }
+
+    const Ctor = System._registry.get(`${thid.namespace}:${thid.id}`);
     if (!Ctor) {
-      throw new Error(`未注册的system: "${id}"`);
+      throw new Error(`未注册的system: "${thid.namespace}:${thid.id}"`);
     }
     return new Ctor();
   }

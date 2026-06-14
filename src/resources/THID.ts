@@ -9,7 +9,7 @@ import type { ParsedTHID } from '../core/types.js';
  * 迁移自 code/parser_thid.js
  */
 
-const ID_REGEX = /^([a-zA-Z0-9_$]+):([a-zA-Z0-9_$]+)=(.+)$/;
+const ID_REGEX = /^([a-zA-Z0-9_$]+)\:(?:([a-zA-Z0-9_$]+)\=)?(.+)$/;
 
 export const THID = {
   /**
@@ -18,6 +18,9 @@ export const THID = {
    * @example
    *   THID.parse("th:entity=character/reimu")
    *   // => { namespace: "th", type: "entity", id: "character/reimu" }
+   * @example
+   *   THID.parse("th:character/reimu")
+   *   // => { namespace: "th", type: null, id: "character/reimu" }
    */
   parse(str: string): ParsedTHID {
     const match = str.match(ID_REGEX);
@@ -26,7 +29,7 @@ export const THID = {
     }
     return {
       namespace: match[1]!,
-      type: match[2]!,
+      type: match[2] ?? null,
       id: match[3]!,
     };
   },

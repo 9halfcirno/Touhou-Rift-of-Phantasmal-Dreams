@@ -1,30 +1,38 @@
+import { THID } from "@/resources/THID";
+
 export class Component<D = any> {
   type: string;
   data: D;
 
   private static _component = new Map<string, new (...args: any[]) => Component>()
 
-  private static _componentData = new Map<new (...args: any[]) => Component, unknown>()
-
   constructor(type: string, data: D) {
     this.type = type;
     this.data = data;
   }
 
-  static register<C extends new (...args: any[]) => Component, D>(type: string, com: C, data?: D) {
-    this._component.set(type, com); // 存放类构造器
-    this._componentData.set(com, data); // 存放组件数据
+  static register<C extends new (...args: any[]) => Component, D>(id: string, com: C, data?: D) {
+    let thid = THID.parse(id);
+    if (thid.type !== null && thid.type !== "component") {
+      throw new Error(`[Component] 注册的组件的thid类型必须为"component"或自动推断!`)
+    }
+
+    this._component.set(`${thid.namespace}:${thid.id}`, com); // 存放类构造器
   }
 
-  static create(type: string, data: unknown): Component {
+  static create(id: string, data: unknown): Component {
+    let thid = THID.parse(id);
+
+    if (thid.type !== null && thid.type !== "component") {
+      throw new Error(`[Component] 注册的组件的thid类型必须为"component"或自动推断!`)
+    }
     // get component class object
-    let Com = this._component.get(type);
+    let Com = this._component.get(`${thid.namespace}:${thid.id}`);
 
     if (Com) {
-      let componentData = this._componentData.get(Com);
-      return new Com(componentData || data)
+      return new Com(data)
     } else {
-      return new FallComponent(type, data);
+      return new FallComponent(`${thid.namespace}:${thid.id}`, data);
     }
   }
 

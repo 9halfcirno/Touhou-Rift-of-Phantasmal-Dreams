@@ -19,7 +19,7 @@ import { type Entity } from '@/ecs';
 /** 解析后的 thid 结构（thid 命名空间保留为 "th"） */
 export interface ParsedTHID {
   namespace: string;
-  type: string;
+  type: string | null;
   id: string;
 }
 
