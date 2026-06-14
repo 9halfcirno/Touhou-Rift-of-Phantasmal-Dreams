@@ -16,6 +16,7 @@ export class TickSystem {
   private _lastTickTime = 0;
   private _maxTickNum = 5;
   private _tickId = 0;
+  private _callbacks: { times: number; func: () => void }[] = [];
 
   /** 由 Game 注入的更新回调 */
   update: (() => void) | null = null;
@@ -39,6 +40,14 @@ export class TickSystem {
         this._lastTickTime = now - Config.game_tick_interval;
       }
     }
+
+    // 执行注册的持续回调
+    if (this._callbacks.length > 0) {
+      this._callbacks = this._callbacks.filter((cb) => {
+        cb.func();
+        return --cb.times > 0;
+      });
+    }
   }
 
   startTick(): void {
@@ -56,6 +65,16 @@ export class TickSystem {
     };
 
     this._tickId = requestAnimationFrame(keepTick);
+  }
+
+  /**
+   * 注册一个持续执行的回调，在后续每次 tick 后调用，共执行指定次数。
+   * @param times 执行次数，必须为正整数
+   * @param func 要执行的回调函数
+   */
+  registerCallback(times: number, func: () => void): void {
+    if (times <= 0) return;
+    this._callbacks.push({ times, func });
   }
 
   stopTick(): void {

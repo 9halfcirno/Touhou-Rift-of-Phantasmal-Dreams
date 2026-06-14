@@ -48,7 +48,10 @@ export class PlayerControlsSystem extends System {
         );
         if (mousePos) {
           entity.faceTo({ x: mousePos.x, y: mousePos.y, z: -mousePos.z });
-          entity.step(5);
+          // entity.step(5);
+          game.TickSystem.registerCallback(15, () => {
+            entity.step(0.3)
+          })
         }
       }
 
