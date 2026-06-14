@@ -2,6 +2,7 @@ import { GameObject } from './GameObject.js';
 import { Position } from '../math/Position.js';
 import * as THREE from 'three';
 import type { RuntimeConfig } from '../core/types.js';
+import { Config } from '@/core/Config.js';
 
 /**
  * 游戏摄像机
@@ -23,7 +24,7 @@ export class GameCamera extends GameObject {
   } = {}) {
     const cam = new THREE.PerspectiveCamera(
       opts.fov ?? 64,
-      opts.aspect ?? (globalThis as Record<string, unknown>).GAME_CONFIG_STAGE_ASPECT as number ?? 16 / 9,
+      opts.aspect ?? Config["game_aspect"] ?? 16 / 9,
       opts.near ?? 0.1,
       opts.far ?? 1000,
     );
