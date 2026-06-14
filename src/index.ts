@@ -11,7 +11,6 @@ export { GameScene } from './core/GameScene.js';
 export { Config } from './core/Config.js';
 export { TickSystem } from './core/TickSystem.js';
 export { RenderSystem } from './core/RenderSystem.js';
-export { Ticker } from './core/Ticker.js';
 export type { GameConfigData } from './core/Config.js';
 
 // ─── 类型 ───────────────────────────────────────
@@ -54,7 +53,14 @@ export { THREEManager } from './managers/THREEManager.js';
 export { GameObject, GameObject2D, GameCamera } from './objects/index.js';
 
 // --- UI相关 ---------------------------------
-export { UILayer } from "./ui/index.js"
+export {
+  UIObject,
+  UIContainer,
+  UIImage,
+  UILabel,
+  UILayer,
+  UIStack,
+ } from "./ui/index.js"
 
 // ─── ECS 框架 ─────────────────────────────────
 export {
