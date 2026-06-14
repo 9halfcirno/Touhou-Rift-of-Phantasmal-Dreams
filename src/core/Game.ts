@@ -9,6 +9,7 @@ import { setRunPath } from '../graphics/TextureLoader.js';
 import '../components/index.js';
 import '../systems/index.js';
 import { InputStack } from '@/input/InputStack.js';
+import { UIStack } from '@/ui/UIStack.js';
 import { Config } from './Config.js';
 import { GameUI } from './GameUI.js';
 import eruda from 'eruda';
@@ -27,6 +28,7 @@ export class Game {
 	readonly KeyboardInput = KeyboardInput;
 	readonly MouseInput = MouseInput;
 	readonly InputStack: InputStack;
+	readonly UIStack: UIStack;
 	readonly domElement: HTMLDivElement;
 	private _inited: boolean = false;
 
@@ -64,6 +66,7 @@ export class Game {
 
 
 		this.InputStack = new InputStack(this.domElement);
+		this.UIStack = new UIStack(this.ui.pixi.app.stage, this.InputStack);
 
 		MouseInput.bind(this.domElement);
 
@@ -166,6 +169,9 @@ export class Game {
 			width: stageWidth,
 			height: stageHeight
 		});
+
+		// 通知 UIStack 传播 resize 到各层 UIObject
+		this.UIStack.resize(this.ui.pixi.app.stage.width, this.ui.pixi.app.stage.height);
 
 		this.domElement.style.width = `${stageWidth}px`;
 		this.domElement.style.height = `${stageHeight}px`;

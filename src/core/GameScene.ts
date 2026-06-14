@@ -2,10 +2,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GameMap } from '../map/GameMap.js';
 import { Config } from './Config.js';
-import { KeyboardInput } from '../input/KeyboardInput.js';
-import { THREEManager } from '../managers/THREEManager.js';
-import type { RuntimeConfig } from './types.js';
-import { InputLayer } from '@/input/InputLayer.js';
 import { type Game } from './Game.js';
 import { GameCamera } from '@/objects/GameCamera.js';
 
@@ -47,8 +43,6 @@ export class GameScene {
 
 	constructor(args: { width: number; height: number; game: Game }) {
 		const scene = new THREE.Scene();
-		const camera = new THREE.PerspectiveCamera(60, args.width / args.height, 0.1, 1000);
-		camera.name = 'Camera_default';
 
 		const renderer = new THREE.WebGLRenderer({
 			antialias: true
@@ -57,6 +51,11 @@ export class GameScene {
 		renderer.setClearColor(0x000000);
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.shadowMap.enabled = true;
+
+		this.defaultCamera = new GameCamera({
+			aspect: Config["game_aspect"],
+		});
+		this.camera = this.defaultCamera;
 
 		this.domElement = renderer.domElement;
 		this.domElement.id = `${args.game.domElement.id}-scene-canvas`;
@@ -68,16 +67,20 @@ export class GameScene {
 		scene.add(ambLight);
 
 		const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-		dirLight.position.copy(camera.position);
-		const { x: cx, y: cy, z: cz } = camera.position;
+		dirLight.position.copy(this.defaultCamera.three.camera.position);
+		const { x: cx, y: cy, z: cz } = this.defaultCamera.three.camera.position;
 		const a = Math.PI / 2 - Config.object2d_tilt;
 		dirLight.target.position.set(cx, cy - Math.sin(a), cz - Math.cos(a));
 		scene.add(dirLight);
 		scene.add(dirLight.target);
 
-		this.three = { scene, camera, renderer, ambLight, dirLight };
-		this.defaultCamera = new GameCamera(camera);
-		this.camera = this.defaultCamera;
+		this.three = {
+			scene,
+			camera: this.defaultCamera.three.camera,
+			renderer,
+			ambLight,
+			dirLight
+		};
 
 		if (Config.enable_shadows) {
 			this.setupShadows();
