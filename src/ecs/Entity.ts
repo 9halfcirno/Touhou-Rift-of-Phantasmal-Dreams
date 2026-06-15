@@ -274,7 +274,8 @@ export class Entity extends GameObject2D {
     if (!def.components) return;
 
     for (const [type, data] of Object.entries(def.components)) {
-      this.setComponent(type, data);
+      let cloneData = structuredClone(data);
+      this.setComponent(type, cloneData);
     }
   }
 }
