@@ -47,6 +47,27 @@ export class CollisionSystem extends System {
 				if (!result.intersects || !result.mtv) continue;
 
 				const mtv = result.mtv;
+
+				if (entityA.hasComponent("th:bullet") && !entityB.hasComponent("th:bullet")) {
+					// A有bullet组件, 但b没有
+					let bulletData = entityA.getComponent("th:bullet")!;
+					if (bulletData.data.from === entityB || bulletData.data.from === entityB.uuid) continue;
+					entityB.setComponent("th:damage", bulletData.data.damage);
+
+					entityA.die();
+					continue;
+				}
+				if (entityB.hasComponent("th:bullet") && !entityA.hasComponent("th:bullet")) {
+					// A有bullet组件, 但b没有
+					let bulletData = entityB.getComponent("th:bullet")!;
+					if (bulletData.data.from === entityA || bulletData.data.from === entityA.uuid) continue;
+					entityA.setComponent("th:damage", bulletData.data.damage);
+					entityB.die();
+					continue;
+				}
+
+				if (hitboxA.penetrable || hitboxB.penetrable) continue;
+
 				let ratioA: number = 0.5;
 				let ratioB: number = 0.5;
 

@@ -1,4 +1,11 @@
+import { Entity } from '@/ecs/index.js';
 import { Component } from '../ecs/Component.js';
+import { Damage } from './DamageComponent.js';
+
+type BulletData = {
+  from: Entity | null;
+  damage: Damage
+}
 
 /**
  * 子弹组件
@@ -6,25 +13,17 @@ import { Component } from '../ecs/Component.js';
  * 标记实体为子弹类型，value 为子弹速度。
  * BulletMovementSystem 通过此组件筛选子弹实体并调用 step() 移动。
  */
-export class BulletComponent extends Component<number> {
-  constructor(data: number) {
-    super('th:bullet', data ?? 0);
-  }
-
-  get value(): number {
-    return this.data;
-  }
-
-  set value(v: number) {
-    this.data = v;
+export class BulletComponent extends Component<BulletData> {
+  constructor(data: BulletData) {
+    super('th:bullet', data ?? {
+      from: null,
+      damage: {
+        value: 1,
+        from: null,
+        type: null
+      }
+    });
   }
 }
 
 Component.register('th:bullet', BulletComponent);
-
-// ─── Module Augmentation: 向 ComponentTypeMap 注入本组件类型 ──
-declare module '../core/types.js' {
-  interface ComponentTypeMap {
-    'th:bullet': number;
-  }
-}

@@ -3,7 +3,6 @@
 	"texture": "th:texture=bullet/小玉",
 
 	"components": {
-		"th:bullet": 1,
 		"th:display": {
 			"size": 0.6
 		},
@@ -12,7 +11,8 @@
 		"th:hitbox": {
 			"shape": "circle",
 			"r": 0.4,
-			"group": 1,
+			"group": 4,
+			"penetrable": true,
 			"pushable": false
 		}
 	}

@@ -61,21 +61,24 @@ export class PlayerControlsSystem extends System {
           world,
         );
         if (mousePos) {
-          const wm = world as {
-            entityManager: { createEntity: (thid: string, params: Record<string, unknown>) => unknown };
-            addObject: (obj: unknown) => void;
-            frame: number;
-          };
+          const wm = world;
           const bullet = wm.entityManager.createEntity('th:entity=bullet/ball', {
             position: entity.position,
             rotation: new THREE.Vector2(1, 0),
             frame: wm.frame,
           });
-          (bullet as { faceTo: (target: { x: number; y: number; z: number }) => void }).faceTo({
+          bullet.faceTo({
             x: mousePos.x,
             y: mousePos.y,
             z: -mousePos.z,
           });
+          bullet.setComponent("th:bullet", {
+            from: entity,
+            damage: {
+              value: 1,
+              from: entity
+            }
+          })
           wm.addObject(bullet);
         }
       }

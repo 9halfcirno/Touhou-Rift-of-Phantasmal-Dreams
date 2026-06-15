@@ -12,7 +12,7 @@ export class DamageHandleSystem extends System {
 	constructor() {
 		super({
 			name: 'DamageHandleSystem',
-			priority: 3,
+			priority: 4,
 			requireComponents: ['th:damage', "th:hp"],
 		});
 	}
@@ -27,9 +27,9 @@ export class DamageHandleSystem extends System {
 
 					// 移除实体的damage
 					// 
-					entity.removeComponent("th:damage");
 				}
 			}
+			entity.removeComponent("th:damage");
 		}
 	}
 }
