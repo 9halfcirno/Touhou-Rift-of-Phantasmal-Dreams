@@ -13,6 +13,7 @@ import { UIStack } from '@/ui/UIStack.js';
 import { Config } from './Config.js';
 import { GameUI } from './GameUI.js';
 import eruda from 'eruda';
+import { THEvent } from '@/events/THEvent.js';
 
 /**
  * 游戏入口类
@@ -20,7 +21,7 @@ import eruda from 'eruda';
  * 整合 Scene、Tick、Render、输入。
  * 迁移自 code/Game.js
  */
-export class Game {
+export class Game extends EventTarget {
 	readonly scene: GameScene;
 	readonly ui: GameUI;
 	readonly TickSystem: TickSystem;
@@ -40,6 +41,7 @@ export class Game {
 		height: number;
 		runPath: string;
 	}) {
+		super();
 		// 注入运行路径
 		setRunPath(config.runPath);
 
@@ -92,6 +94,11 @@ export class Game {
 		this.RenderSystem.update = () => this.render();
 
 		this._inited = true;
+		// 派发初始化事件
+		this.dispatchEvent(new THEvent("th:game_inited", {
+			from: this,
+			event: {}
+		}));
 	}
 
 	run(): void {
