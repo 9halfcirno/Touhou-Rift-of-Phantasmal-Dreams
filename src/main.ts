@@ -88,12 +88,16 @@ async function init() {
 	game.scene.currentMap!.addEntity(entity);
 
 	// 6. 创建敌人实体
-	const enemy = game.scene.currentMap!.entityManager.createEntity(
-		'th:entity=enemy/fairy',
-	);
-	mainMap.addObject(enemy);
-
-	enemy.position.set(4, 0, 4);
+	for (let i = 0; i < 10; i++) {
+		for (let j = 0; j < 10; j++) {
+			const enemy = game.scene.currentMap!.entityManager.createEntity(
+				'th:entity=enemy/fairy',
+			);
+			mainMap.addObject(enemy);
+			enemy.setPosition(i * 5, 0, j * 5);
+			// enemy.setPosition(Math.random() * i + i * 0.2, 0, Math.random() * i + i * 0.2);
+		}
+	}
 
 	// ─── Debug 条目（全部迁移到 game.$addDebugItem）─────────
 	const debugUpdates: Array<() => void> = [];
@@ -164,7 +168,7 @@ async function init() {
 		if (k.down)
 			game.scene.switchToGameMap(
 				mainMap === game.scene.currentMap ? sebMap : mainMap,
-			);		
+			);
 	});
 
 	// 9. Z 键扣血
@@ -186,15 +190,15 @@ async function init() {
 	});
 
 	// game.ui.pixi.app.renderer.removeAllListeners();
-	
+
 	debugInput.keyboard.onKey("1", (k) => {
 		if (k.down)
-		game.InputStack.push(uiInput);
+			game.InputStack.push(uiInput);
 	})
-	
+
 	uiInput.keyboard.onKey("2", (k, e) => {
 		if (k.down)
-		game.InputStack.pop();
+			game.InputStack.pop();
 	})
 
 	uiInput.pointer.on("pointerdown", (w) => {
@@ -212,7 +216,7 @@ async function init() {
 	// 弹窗层（默认 modal，阻断下层输入，但不隐藏下层 UI）
 	const popupLayer = new TH.UILayer(undefined, 'popup');
 	const popupBg = new PIXI.Graphics();
-	popupBg.rect(0, 0, 500, 120).fill({color: 0x000000, alpha: 0.5});
+	popupBg.rect(0, 0, 500, 120).fill({ color: 0x000000, alpha: 0.5 });
 	popupLayer.add(popupBg);
 
 	const popupText = new PIXI.Text({
