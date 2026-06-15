@@ -7,6 +7,7 @@ import { EntityManager } from './EntityManager.js';
 import { THID } from '../resources/THID.js';
 import { Position, Vector2, Vector3 } from '../math/Position.js';
 import type { EntityDefinition } from '../core/types.js';
+import { GameObject } from '@/objects/GameObject.js';
 
 /**
  * 游戏实体（ECS 中的 Entity）
@@ -139,7 +140,7 @@ export class Entity extends GameObject2D {
    * 朝向目标位置
    */
   faceTo(
-    target: number | Position | { x: number; y: number; z: number } | Entity,
+    target: number | Position | { x: number; y: number; z: number } | GameObject,
     y?: number,
     z?: number,
   ): void {
@@ -153,7 +154,7 @@ export class Entity extends GameObject2D {
       tx = target.x;
       ty = target.y;
       tz = target.z;
-    } else if (target instanceof Entity) {
+    } else if (target instanceof GameObject) {
       tx = target.position.x;
       ty = target.position.y;
       tz = target.position.z;

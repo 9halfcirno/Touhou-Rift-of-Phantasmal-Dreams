@@ -15,3 +15,4 @@ export { FamilyComponent } from './FamilyComponent.js';
 export { PlayerControlsComponent } from './PlayerControlsComponent.js';
 export { BulletComponent } from './BulletComponent.js';
 export { DamageComponent } from "./DamageComponent.js";
+export { SprintComponent } from './SprintComponent.js';
