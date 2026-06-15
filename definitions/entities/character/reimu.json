@@ -15,6 +15,11 @@
 			"height": 1.6,
 			"group": [1, 2]
 		},
-		"th:player_controls": {}
+		"th:player_controls": {},
+		"th:sprint": {
+			"time": 6,
+			"speed": 1.8,
+			"cooldown": 50
+		}
 	}
 }
