@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import { Game } from "./Game";
+import { LayoutStyles } from "@pixi/layout";
 
 export class GameUI {
 	pixi = {
@@ -23,7 +24,9 @@ export class GameUI {
 		this.domElement.style.pointerEvents = "none";
 	}
 
-	async init(game: Game) {
+	async init(game: Game, opts: {
+		layout?: LayoutStyles
+	} = {}) {
 		await this.pixi.app.init({
 			canvas: this.domElement,
 			preference: "webgl",
@@ -35,8 +38,13 @@ export class GameUI {
 			resolution: window.devicePixelRatio
 		})
 
+		// this.pixi.app.renderer.layout.enableDebug(true);
 
-		this.pixi.app.renderer.events.autoPreventDefault = false;
+		this.pixi.app.stage.layout = opts.layout || {};
+		// this.pixi.app.stage.layout = { debug: true, debugDrawPadding: true }
+
+
+		this.pixi.app.renderer.events.autoPreventDefault = true;
 	}
 
 	render() {
@@ -49,10 +57,10 @@ export class GameUI {
 		aspect: number
 	}) {
 
-
-		const scale = opts.width / this._orgWidth;		
-
-		this.pixi.app.stage.scale.set(scale);
+		this.pixi.app.stage.layout = {
+			width: opts.width,
+			height: opts.height
+		}
 		if (this.pixi.app.renderer) {
 			this.pixi.app.renderer.resize(opts.width, opts.height);
 		}

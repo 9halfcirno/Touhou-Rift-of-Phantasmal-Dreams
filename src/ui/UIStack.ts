@@ -33,7 +33,7 @@ export class UIStack {
 		this._layers.push(layer);
 		layer.attach(this.root);
 		layer.display();
-		this._inputStack.push(layer.input);
+		// this._inputStack.push(layer.input);
 		layer._uiStack = this;
 	}
 
@@ -42,7 +42,7 @@ export class UIStack {
 		if (this._layers.length === 0) return;
 		const layer = this._layers.pop()!;
 		layer.detach();
-		this._inputStack.remove(layer.input);
+		// this._inputStack.remove(layer.input);
 		layer.hide();
 		layer._uiStack = null;
 		return layer;
@@ -80,21 +80,6 @@ export class UIStack {
 	/** 栈中层数量 */
 	get layerCount(): number {
 		return this._layers.length;
-	}
-
-	/**
-	 * 通知所有已推入的 UILayer 进行响应式布局更新。
-	 *
-	 * 通常在窗口 resize 时由 Game.updateGameSize() 调用。
-	 * 每层 UILayer 的参考尺寸为当前 stage 的像素尺寸。
-	 *
-	 * @param width  UI 栈根容器的像素宽度
-	 * @param height UI 栈根容器的像素高度
-	 */
-	resize(width: number, height: number): void {
-		for (const layer of this._layers) {
-			layer.onResize(width, height);
-		}
 	}
 
 	/** 销毁：逐层 pop，清空栈 */

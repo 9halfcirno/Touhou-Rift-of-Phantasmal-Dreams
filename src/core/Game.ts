@@ -177,9 +177,6 @@ export class Game extends EventTarget {
 			height: stageHeight
 		});
 
-		// 通知 UIStack 传播 resize 到各层 UIObject
-		this.UIStack.resize(this.ui.pixi.app.stage.width, this.ui.pixi.app.stage.height);
-
 		this.domElement.style.width = `${stageWidth}px`;
 		this.domElement.style.height = `${stageHeight}px`;
 	}
