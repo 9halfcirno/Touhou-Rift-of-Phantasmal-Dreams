@@ -1,4 +1,5 @@
 <div align="center">	
+	<img width="256" height="256" alt="此处应有一副灵梦和阴阳玉的icon" src="https://github.com/user-attachments/assets/de6192af-f628-4b36-83e4-90e567446c63" />
 	<p style="font-size: 1.5em; font-weight: bold;">
   		东方幻梦裂隙
 	</p>
@@ -26,7 +27,9 @@
 玩家可以操控不同的角色, 去被梦境裂隙影响的幻想乡, 调查并解决这场异变!
 
 ## 技术栈
-- 引擎架构: <span title="实际上是参考了Minecraft BE">ECS + 混合传统架构</span>
+- 引擎架构: <span title="实际上是参考了Minecraft BE">ECS + 传统OOP架构</span>
 - 编程语言: <span title="原本是Javascript">Typescript</span>
 - 主依赖库: [PixiJS](https://pixijs.com/), [Three.js](https://threejs.org/), [Neutralinojs](https://neutralino.js.org/)
 - 构建工具: [Vite](https://vitejs.dev/)
+
+<small>~~急需美术, 音乐(bushi)~~</small>
