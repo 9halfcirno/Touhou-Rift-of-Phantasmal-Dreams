@@ -15,6 +15,10 @@ export interface WheelState {
   z: number;
 }
 
+/** 
+ * @deprecated 此对象创建于引擎早期, 现在已由InputLayer.mouse代替 
+ * 该对象已无任何实际用途
+ */
 export const MouseInput = {
   domElement: null as HTMLElement | null,
 

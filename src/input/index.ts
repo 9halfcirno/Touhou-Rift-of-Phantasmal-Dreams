@@ -1,5 +1,5 @@
 export { KeyboardInput } from './KeyboardInput.js';
-export type { KeyState } from './KeyboardInput.js';
+export type { KeyState } from './InputLayer.js';
 export { MouseInput } from './MouseInput.js';
 export type { WheelState } from './MouseInput.js';
 export { PointerInput } from './PointerInput.js';

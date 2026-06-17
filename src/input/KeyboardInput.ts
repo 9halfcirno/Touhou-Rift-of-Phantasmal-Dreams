@@ -9,6 +9,10 @@ export interface KeyState {
   repeat: boolean;
 }
 
+/** 
+ * @deprecated 此对象创建于引擎早期, 现在已由InputLayer.keyboard代替
+ * 该对象已无任何实际用途
+ */
 export const KeyboardInput = {
   /** 特殊键名：匹配任意键的状态汇总 */
   ALL: 'all_key' as const,

@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import type { KeyState } from './KeyboardInput.ts';
 import type { WheelState } from './MouseInput.ts';
 import { MouseInput } from './MouseInput.ts';
 import type { PointerState } from './PointerInput.ts';
@@ -8,253 +7,27 @@ import { GameCamera } from '@/objects/GameCamera.ts';
 import { GameMap } from '@/map/index.ts';
 import { uuid } from '@/utils/uuid.ts';
 import type { InputStack } from './InputStack.js';
+import { NodeMaterial } from 'three/webgpu';
 
-// ═══════════════════════════════════════════════════════════════
-// 内部包装类（同文件，访问 InputLayer 的 _ 前缀内部成员）
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * 键盘输入命名空间，挂载在 InputLayer.keyboard 上。
- * 提供按键状态查询和回调注册。
- */
-class InputLayerKeyboard {
-	constructor(private _layer: InputLayer) { }
-
-	/** 获取本层的按键状态（被上层阻断的键返回 {down:false}） */
-	key(k: string): KeyState {
-		k = k.toLowerCase();
-		if (!this._layer._key.has(k)) {
-			this._layer._key.set(k, { down: false, repeat: false });
-		}
-		return this._layer._key.get(k)!;
-	}
-
-	/** 注册按键回调。每次 keydown/keyup 事件到达本层时触发 */
-	onKey(k: string, cb: (state: KeyState, event?: KeyboardEvent) => void): void {
-		if (typeof cb !== 'function') return;
-		k = k.toLowerCase();
-		if (!this._layer._keyCallbacks.has(k)) {
-			this._layer._keyCallbacks.set(k, []);
-		}
-		this._layer._keyCallbacks.get(k)!.push(cb);
-	}
-
-	/** 移除按键回调 */
-	offKey(k: string, cb: (state: KeyState, event?: KeyboardEvent) => void): void {
-		const arr = this._layer._keyCallbacks.get(k.toLowerCase());
-		if (!arr) return;
-		const i = arr.indexOf(cb);
-		if (i !== -1) arr.splice(i, 1);
-	}
+export interface KeyState {
+	down: boolean;
+	repeat: boolean;
 }
 
-/**
- * 鼠标输入命名空间，挂载在 InputLayer.mouse 上。
- * 提供鼠标坐标、按钮状态、滚轮和按钮回调。
- */
-class InputLayerMouse {
-	constructor(private _layer: InputLayer) { }
-
-	/** 鼠标在 canvas 内的 X 坐标 */
-	get x(): number { return this._layer._mouseX; }
-	/** 鼠标在 canvas 内的 Y 坐标 */
-	get y(): number { return this._layer._mouseY; }
-	/** 上一帧到当前帧的鼠标移动增量 X */
-	get movementX(): number { return this._layer._movementX; }
-	/** 上一帧到当前帧的鼠标移动增量 Y */
-	get movementY(): number { return this._layer._movementY; }
-
-	/** 鼠标左键是否按下 */
-	get leftButton(): boolean { return this._layer._leftButton; }
-	/** 鼠标右键是否按下 */
-	get rightButton(): boolean { return this._layer._rightButton; }
-	/** 鼠标中键是否按下 */
-	get middleButton(): boolean { return this._layer._middleButton; }
-
-	/** 当前滚轮状态 */
-	get wheel(): WheelState { return this._layer._wheel; }
-
-	/** 注册滚轮回调 */
-	onWheel(cb: (wheel: WheelState, event?: WheelEvent) => void): void {
-		this._layer._wheelCallbacks.push(cb);
-	}
-
-	/** 移除滚轮回调 */
-	offWheel(cb: (wheel: WheelState, event?: WheelEvent) => void): void {
-		const i = this._layer._wheelCallbacks.indexOf(cb);
-		if (i !== -1) this._layer._wheelCallbacks.splice(i, 1);
-	}
-
-	/**
-	 * 注册鼠标按钮回调。
-	 * button: 'leftDown' | 'leftUp' | 'rightDown' | 'rightUp'
-	 */
-	onButton(button: string, cb: (event: MouseEvent, originalEvent?: MouseEvent) => void): void {
-		if (!this._layer._buttonCallbacks.has(button)) {
-			this._layer._buttonCallbacks.set(button, []);
-		}
-		this._layer._buttonCallbacks.get(button)!.push(cb);
-	}
-
-	/** 移除鼠标按钮回调 */
-	offButton(button: string, cb: (event: MouseEvent, originalEvent?: MouseEvent) => void): void {
-		const arr = this._layer._buttonCallbacks.get(button);
-		if (!arr) return;
-		const i = arr.indexOf(cb);
-		if (i !== -1) arr.splice(i, 1);
-	}
-
-	/**
-	 * 计算鼠标在地图平面上的投影位置（射线检测）。
-	 * 委托给 MouseInput.inMapPosition。
-	 *
-	 * @param camera 当前摄像机
-	 * @param plane 目标平面（THREE.Plane 或 THREE.Mesh）
-	 * @returns 交点坐标，无交点时返回 null
-	 */
-	positionInMap(
-		camera: GameCamera,
-		plane: GameMap,
-	): THREE.Vector3 | null {
-		return MouseInput.inMapPosition(camera, plane);
-	}
+export type ButtonType = "left" | "right" | "middle";
+export interface ButtonStatue {
+	down: boolean;
 }
 
-/**
- * 指针输入命名空间，挂载在 InputLayer.pointer 上。
- * 提供 pointer 状态查询和回调注册。
- *
- * 支持多点触控：通过 get(pointerId) 查询任意活跃 pointer。
- * 便捷属性（x/y/isDown 等）指向主 pointer。
- */
-class InputLayerPointer {
-	constructor(private _layer: InputLayer) { }
-
-	// ─── 主 pointer 便捷属性 ────────────────────
-
-	/** 主 pointer 的 canvas X */
-	get x(): number { return this._layer._pointerX; }
-	/** 主 pointer 的 canvas Y */
-	get y(): number { return this._layer._pointerY; }
-	/** 主 pointer 的移动增量 X */
-	get movementX(): number { return this._layer._pointerMovementX; }
-	/** 主 pointer 的移动增量 Y */
-	get movementY(): number { return this._layer._pointerMovementY; }
-	/** 主 pointer 是否按下 */
-	get isDown(): boolean { return this._layer._pointerDown; }
-	/** 主 pointer 的类型 */
-	get pointerType(): string { return this._layer._pointerType; }
-	/** 所有活跃 pointerId */
-	get activePointers(): number[] { return this._layer._pointerIds; }
-
-	// ─── 查询 ──────────────────────────────────
-
-	/**
-	 * 获取指定 pointerId 的完整状态（委托给全局 PointerInput）。
-	 * 不传参返回主 pointer，传入 pointerId 返回对应 pointer。
-	 * 未找到返回 null。
-	 */
-	get(pointerId?: number): PointerState | null {
-		return PointerInput.pointer(pointerId);
-	}
-
-	// ─── 回调 ──────────────────────────────────
-
-	/**
-	 * 注册 pointer 事件回调。
-	 * type: 'pointerdown' | 'pointerup' | 'pointermove' | 'pointercancel'
-	 */
-	on(type: string, cb: (event: PointerEvent) => void): void {
-		if (!this._layer._pointerCallbacks.has(type)) {
-			this._layer._pointerCallbacks.set(type, []);
-		}
-		this._layer._pointerCallbacks.get(type)!.push(cb);
-	}
-
-	/** 移除 pointer 事件回调 */
-	off(type: string, cb: (event: PointerEvent) => void): void {
-		const arr = this._layer._pointerCallbacks.get(type);
-		if (!arr) return;
-		const i = arr.indexOf(cb);
-		if (i !== -1) arr.splice(i, 1);
-	}
-}
-
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * 输入层 —— 业务层与输入系统交互的唯一接口。
- *
- * 提供 `keyboard`、`mouse` 和 `pointer` 三个子命名空间，
- * InputStack 负责将事件按栈顺序派发到各层。
- *
- * @example
- *   const layer = new InputLayer('gameplay');
- *   layer.keyboard.onKey('w', (s) => { if (s.down) moveForward(); });
- *   const mx = layer.mouse.x;
- *   layer.mouse.onWheel((w) => zoom(w.y));
- *   layer.pointer.on('pointerdown', (e) => onTouch(e));
- *   inputStack.push(layer);
- */
 export class InputLayer {
 	readonly uuid = uuid();
 	readonly name: string;
-	readonly modal: boolean;
-	readonly blockKey: ReadonlyArray<string> | 'all';
+
+	keyboard: Keyboard;
+	mouse: Mouse;
 
 	/** @internal 由 InputStack 注入的栈引用，用于 popFromStack() */
 	_stack: InputStack | null = null;
-
-	/** 键盘输入命名空间 */
-	readonly keyboard: InputLayerKeyboard;
-	/** 鼠标输入命名空间 */
-	readonly mouse: InputLayerMouse;
-	/** 指针输入命名空间 */
-	readonly pointer: InputLayerPointer;
-
-	// ─── 内部状态（_ 前缀：由 InputStack 和子对象访问，业务代码请勿直接使用）───
-
-	/** @internal 按键状态镜像 */
-	_key = new Map<string, KeyState>();
-
-	/** @internal 鼠标坐标 */
-	_mouseX = 0;
-	_mouseY = 0;
-	_movementX = 0;
-	_movementY = 0;
-
-	/** @internal 鼠标按钮状态 */
-	_leftButton = false;
-	_rightButton = false;
-	_middleButton = false;
-
-	/** @internal 滚轮状态 */
-	_wheel: WheelState = { x: 0, y: 0, z: 0 };
-
-	/** @internal 按键回调表 */
-	_keyCallbacks = new Map<string, Array<(state: KeyState, event?: KeyboardEvent) => void>>();
-
-	/** @internal 滚轮回调表 */
-	_wheelCallbacks: Array<(wheel: WheelState, event?: WheelEvent) => void> = [];
-
-	/** @internal 鼠标按钮回调表 */
-	_buttonCallbacks = new Map<string, Array<(event: MouseEvent, originalEvent?: MouseEvent) => void>>();
-
-	/** @internal 主 pointer 坐标 */
-	_pointerX = 0;
-	_pointerY = 0;
-	_pointerMovementX = 0;
-	_pointerMovementY = 0;
-
-	/** @internal 主 pointer 状态 */
-	_pointerDown = false;
-	_pointerType = '';
-
-	/** @internal 活跃 pointerId 列表 */
-	_pointerIds: number[] = [];
-
-	/** @internal pointer 事件回调表 */
-	_pointerCallbacks = new Map<string, Array<(event: PointerEvent) => void>>();
 
 	constructor(
 		name: string,
@@ -264,130 +37,9 @@ export class InputLayer {
 		} = {},
 	) {
 		this.name = name;
-		this.modal = opts.modal ?? false;
-		this.blockKey = opts.blockKey ?? [];
 
-		this.keyboard = new InputLayerKeyboard(this);
-		this.mouse = new InputLayerMouse(this);
-		this.pointer = new InputLayerPointer(this);
-	}
-
-	// ─── 由 InputStack 调用的内部方法 ──────────────
-
-	/** @internal 处理按键按下 */
-	_handleKeyDown(key: string, repeat: boolean, event?: KeyboardEvent): void {
-		const state = this._ensureKeyState(key);
-		state.down = true;
-		state.repeat = repeat;
-		this._fireKeyCallbacks(key, state, event);
-		this._fireKeyCallbacks('all_key', this._aggregateAllKey(), event);
-	}
-
-	/** @internal 处理按键抬起 */
-	_handleKeyUp(key: string, event?: KeyboardEvent): void {
-		const state = this._ensureKeyState(key);
-		state.down = false;
-		state.repeat = false;
-		this._fireKeyCallbacks(key, state, event);
-		this._fireKeyCallbacks('all_key', this._aggregateAllKey(), event);
-	}
-
-	/** @internal 处理滚轮 */
-	_handleWheel(wheel: WheelState, event?: WheelEvent): void {
-		this._wheel = wheel;
-		for (const cb of this._wheelCallbacks) {
-			try { cb(wheel, event); } catch (e) { console.error(e) }
-		}
-	}
-
-	/**
-	 * @internal 处理鼠标按钮事件。
-	 * 同时更新按钮状态镜像并触发回调。
-	 */
-	_handleButton(button: string, event: MouseEvent): void {
-		switch (button) {
-			case 'leftDown': this._leftButton = true; break;
-			case 'leftUp': this._leftButton = false; break;
-			case 'rightDown': this._rightButton = true; break;
-			case 'rightUp': this._rightButton = false; break;
-			case 'middleDown': this._middleButton = true; break;
-			case 'middleUp': this._middleButton = false; break;
-		}
-		const arr = this._buttonCallbacks.get(button);
-		if (!arr) return;
-		for (const cb of arr) {
-			try { cb(event, event); } catch (e) { console.error(e) }
-		}
-	}
-
-	/** @internal 更新鼠标坐标（不受阻断影响） */
-	_handleMouseMove(x: number, y: number, dx: number, dy: number): void {
-		this._mouseX = x;
-		this._mouseY = y;
-		this._movementX = dx;
-		this._movementY = dy;
-	}
-
-	/** @internal 更新鼠标按钮状态（不受阻断影响） */
-	_setButtonState(left: boolean, right: boolean, middle: boolean): void {
-		this._leftButton = left;
-		this._rightButton = right;
-		this._middleButton = middle;
-	}
-
-	// ─── pointer 内部方法 ─────────────────────────
-
-	/** @internal 处理 pointerdown */
-	_handlePointerDown(event: PointerEvent): void {
-		this._pointerX = event.offsetX;
-		this._pointerY = event.offsetY;
-		this._pointerMovementX = 0;
-		this._pointerMovementY = 0;
-		this._pointerDown = true;
-		this._pointerType = event.pointerType;
-		if (!this._pointerIds.includes(event.pointerId)) {
-			this._pointerIds.push(event.pointerId);
-		}
-		this._firePointerCallbacks('pointerdown', event);
-	}
-
-	/** @internal 处理 pointerup */
-	_handlePointerUp(event: PointerEvent): void {
-		this._pointerX = event.offsetX;
-		this._pointerY = event.offsetY;
-		this._pointerDown = false;
-		this._pointerIds = this._pointerIds.filter(id => id !== event.pointerId);
-		this._firePointerCallbacks('pointerup', event);
-	}
-
-	/** @internal 处理 pointermove */
-	_handlePointerMove(event: PointerEvent): void {
-		this._pointerMovementX = event.offsetX - this._pointerX;
-		this._pointerMovementY = event.offsetY - this._pointerY;
-		this._pointerX = event.offsetX;
-		this._pointerY = event.offsetY;
-		this._pointerType = event.pointerType;
-		this._firePointerCallbacks('pointermove', event);
-	}
-
-	/** @internal 处理 pointercancel */
-	_handlePointerCancel(event: PointerEvent): void {
-		this._pointerDown = false;
-		this._pointerIds = this._pointerIds.filter(id => id !== event.pointerId);
-		this._firePointerCallbacks('pointercancel', event);
-	}
-
-	/** @internal 层被弹出或焦点丢失时清空所有状态 */
-	_reset(): void {
-		for (const v of this._key.values()) {
-			v.down = false;
-			v.repeat = false;
-		}
-		this._leftButton = false;
-		this._rightButton = false;
-		this._middleButton = false;
-		this._pointerDown = false;
-		this._pointerIds = [];
+		this.keyboard = new Keyboard(this, { blocks: opts.blockKey });
+		this.mouse = new Mouse(this, { modal: opts.modal })
 	}
 
 	/**
@@ -398,40 +50,269 @@ export class InputLayer {
 		this._stack?.remove(this);
 	}
 
-	// ─── 私有方法 ──────────────────────────────────
+	_handleKeyUpdate(k: string, down: boolean) {
+		let key = k.toLowerCase();
+		this.keyboard.updateKey(key, down);
+	}
 
-	private _ensureKeyState(k: string): KeyState {
+	_handleMouseBtnUpdate(b: number, down: boolean, e: MouseEvent) {
+		this.mouse.updateBtn(b, down, e);
+	}
+
+	_handleMousePosUpdate(e: MouseEvent) {
+		this.mouse.updatePos(e);
+	}
+
+	_handleWheel(e: WheelEvent) {
+		this.mouse.handleWheel(e);
+	}
+
+	_reset() {
+		this.keyboard.reset();
+		this.mouse.reset();
+	}
+}
+
+// 下方的均为InputLayer的东西, 是封装, 没监听
+
+class Keyboard {
+	/** layer */
+	layer: InputLayer;
+	/** 键状态 */
+	_key = new Map<string, KeyState>
+
+	/** 阻断传播到下层的键, 此处只存放数据 */
+	blocks: Array<string> | 'all' = [];
+
+	private _onKeyCB: Map<string, Array<(key: KeyState) => void>> = new Map();
+
+	constructor(layer: InputLayer, { blocks }: { blocks?: string[] | 'all' } = {}) {
+		this.layer = layer;
+
+		if (blocks === "all") this.blocks = "all";
+		else blocks && Array.isArray(this.blocks) && this.blocks.push(...blocks)
+	}
+
+	key(k: string): KeyState {
 		k = k.toLowerCase();
 		if (!this._key.has(k)) {
-			this._key.set(k, { down: false, repeat: false });
+			let key = {
+				down: false,
+				repeat: false
+			}
+			this._key.set(k, key);
 		}
 		return this._key.get(k)!;
+
 	}
 
-	private _fireKeyCallbacks(key: string, state: KeyState, event?: KeyboardEvent): void {
-		const arr = this._keyCallbacks.get(key);
+	onKey(k: string, cb: (key: KeyState) => void) {
+		if (!this._onKeyCB.has(k)) {
+			this._onKeyCB.set(k, []);
+		}
+		let arr = this._onKeyCB.get(k)!;
+		if (arr.includes(cb)) return;
+		arr.push(cb);
+	}
+
+	private _handleOnKey(k: string) {
+		let arr = this._onKeyCB.get(k);
 		if (!arr) return;
 		for (const cb of arr) {
-			try { cb(state, event); } catch (e) { console.error(e) }
+			cb(this.key(k));
 		}
 	}
 
-	private _firePointerCallbacks(type: string, event: PointerEvent): void {
-		const arr = this._pointerCallbacks.get(type);
+	reset(k?: string) {
+		if (k) {
+			this.updateKey(k, false);
+		} else {
+			for (let k of this._key.keys()) {
+				this.updateKey(k, false); // 松开所有按键
+			}
+		}
+	}
+
+	/** 不推荐在业务层乱调用这个方法, 除非你知道你在干什么 */
+	updateKey(k: string, d: boolean) {
+		let key = this.key(k);
+		if (key.down && d) { // 键一直按下
+			key.repeat = true; // 不用更新down, 只更新repeat
+			// 这里不调用_handleOnKey, 因为浏览器自己的事件分发就挺玄学的, 而且这玩意还让我判断repeat
+		} else if (!key.down && d) { // 键原本没按下
+			key.down = true;
+			key.repeat = false; // 此时为按下第一次事件分发, 不repeat
+			this._handleOnKey(k);
+		} else if (key.down && !d) { // 键原本按下, 现在没有
+			key.down = false;
+			key.repeat = false;
+		} else { // 最后一种情况, 即一直都没按下
+			// 感觉都没必要改键的状态了...
+		}
+
+	}
+}
+
+class Mouse {
+	modal: boolean = false;
+
+	private domElement: HTMLElement | null = null;
+
+	private _x: number = 0;
+	private _y: number = 0;
+
+	private _btns: Map<number, ButtonStatue> = new Map();
+	private _onBtnCB: Map<number, Array<(btn: ButtonStatue, e?: MouseEvent) => void>> = new Map();
+
+	private _onWheelCB: Array<(event: WheelEvent) => void> = [];
+
+	constructor(layer: InputLayer, { modal }: { modal?: boolean } = {}) {
+		this.modal = modal || false;
+	}
+
+	bind(ele: HTMLElement) {
+		this.domElement = ele;
+	}
+
+
+	get x() {
+		return this._x;
+	}
+	get y() {
+		return this._y;
+	}
+
+	movement = {
+		x: 0,
+		y: 0
+	}
+
+	/**
+	 * 
+	 * @param btn 按钮的名字/编号
+	 * @returns 
+	 */
+	button(btn: ButtonType | number): ButtonStatue {
+		if (typeof btn === "string") btn = BtnId[btn];
+		if (!this._btns.has(btn)) {
+			let state = {
+				down: false,
+			}
+			this._btns.set(btn, state);
+		}
+		return this._btns.get(btn)!;
+	}
+
+	onButton(btn: string | number, cb: (btn: ButtonStatue, event?: MouseEvent) => void) {
+		if (typeof btn === "string") btn = BtnId[btn];
+		if (!this._onBtnCB.has(btn)) {
+			this._onBtnCB.set(btn, []);
+		}
+		let arr = this._onBtnCB.get(btn)!;
+		if (arr.includes(cb)) return;
+		arr.push(cb);
+	}
+
+	private _handleOnBtn(b: number, e?: MouseEvent) {
+		let arr = this._onBtnCB.get(b);
 		if (!arr) return;
 		for (const cb of arr) {
-			try { cb(event); } catch (e) { console.error(e) }
+			cb(this.button(b), e);
 		}
 	}
 
-	private _aggregateAllKey(): KeyState {
-		let down = false;
-		let repeat = false;
-		for (const v of this._key.values()) {
-			if (v.down) down = true;
-			if (v.repeat) repeat = true;
-			if (down && repeat) break;
-		}
-		return { down, repeat };
+	onWheel(callback: (event: WheelEvent) => void) {
+		if (this._onWheelCB.includes(callback)) return;
+		this._onWheelCB.push(callback);
 	}
+
+	private _handleOnWheel(e: WheelEvent) {
+		for (const cb of this._onWheelCB) {
+			cb(e);
+		}
+	}
+
+	reset(b?: ButtonType | number) {
+		if (b) {
+			if (typeof b === "string") {
+				b = BtnId[b];
+			};
+			this.updateBtn(b, false);
+		} else {
+			for (const b of this._btns.keys()) {
+				this.updateBtn(b, false);
+			}
+		}
+	}
+
+	updatePos(e: MouseEvent) {
+		let { x: offsetX, y: offsetY, button } = e;
+		let dx = offsetX - this._x;
+		let dy = offsetY - this._y;
+
+		this._x = offsetX || 0;
+		this._y = offsetY || 0;
+
+		this.movement.x = dx;
+		this.movement.y = dy;
+	}
+
+	updateBtn(b: number, d: boolean, e?: MouseEvent) {
+		let btn = this.button(b);
+		if (!btn.down && d) { // 之前没按下, 但现在按下
+			btn.down = true;
+			this._handleOnBtn(b, e);
+		} else if (btn.down && !d) {
+			btn.down = false; // 之前按下, 现在没按下
+		}
+	}
+
+	handleWheel(e: WheelEvent) {
+		this._handleOnWheel(e);
+	}
+
+	// 计算地图内坐标用, pim是position in map的缩写
+	private _pim_raycaster = new THREE.Raycaster()
+	private _pim_intersectionPoint = new THREE.Vector3()
+	private _pim_mouse = new THREE.Vector2()
+	/**
+	 * 计算鼠标在地图平面上的投影位置
+	 */
+	positionInMap(
+		camera: GameCamera,
+		map: GameMap,
+	): THREE.Vector3 | null {
+		const rect = this.domElement?.getBoundingClientRect() || {
+			x: 0,
+			y: 0,
+			width: window.innerWidth,
+			height: window.innerHeight,
+		};
+
+		this._pim_mouse.x = (this.x / rect.width) * 2 - 1;
+		this._pim_mouse.y = -(this.y / rect.height) * 2 + 1;
+
+		this._pim_raycaster.setFromCamera(this._pim_mouse, camera.three.camera);
+
+		// Mesh 检测
+		if (map.three.ground instanceof THREE.Mesh) {
+			const intersects = this._pim_raycaster.intersectObject(map.three.ground);
+			return intersects.length > 0 ? intersects[0]!.point : null;
+		}
+
+		// Plane 检测
+		const pos = this._pim_raycaster.ray.intersectPlane(map.three.ground, this._pim_intersectionPoint);
+		if (pos) {
+			this._pim_intersectionPoint.set(pos.x, pos.y, pos.z);
+			return this._pim_intersectionPoint;
+		}
+		return null;
+	}
+}
+
+const BtnId: Record<string, number> = {
+	"left": 0,
+	"middle": 1,
+	"right": 2,
+	// 3, 4等我搞懂再说
 }

@@ -20,13 +20,15 @@ import { InputLayer } from './InputLayer.js';
  */
 export class InputStack {
 	private _layers: InputLayer[] = [];
-	private bottomLayer = new InputLayer("bottom");
+	private bottomLayer: InputLayer;
 	domElement: HTMLElement;
 
 	constructor(element: HTMLElement) {
 		this.domElement = element;
 		MouseInput.bind(element);
-		this.push(this.bottomLayer)
+		let bottom = new InputLayer("bottom")
+		this.push(bottom);
+		this.bottomLayer = bottom; // 以便躲过push中的检测
 		this._bindEvents();
 	}
 
@@ -34,8 +36,11 @@ export class InputStack {
 
 	/** 压入栈顶（自动从旧位置移除，并注入 _stack 引用） */
 	push(layer: InputLayer): void {
+		if (layer === this.bottomLayer) return;
 		this.remove(layer);
+		this.bottom?._reset();
 		this._layers.push(layer);
+		layer.mouse.bind(this.domElement);
 		layer._stack = this;
 	}
 
@@ -52,6 +57,7 @@ export class InputStack {
 
 	/** 从栈中任意位置移除（自动清除 _stack 引用） */
 	remove(layer: InputLayer): void {
+		if (layer === this.bottomLayer) return;
 		const idx = this._layers.indexOf(layer);
 		if (idx !== -1) {
 			this._layers.splice(idx, 1);
@@ -70,7 +76,7 @@ export class InputStack {
 	get activeLayer(): InputLayer | null {
 		return this._layers.length > 0
 			? this._layers[this._layers.length - 1]!
-			: null;
+			: this.bottom;
 	}
 
 	get top() {
@@ -106,12 +112,12 @@ export class InputStack {
 		window.addEventListener('mouseup', this._onMouseUp);
 		this.domElement.addEventListener('wheel', this._onWheel);
 		this.domElement.addEventListener('mousemove', this._onMouseMove);
-		this.domElement.addEventListener('pointerdown', this._onPointerDown);
-		window.addEventListener('pointerup', this._onPointerUp);
-		this.domElement.addEventListener('pointermove', this._onPointerMove);
-		window.addEventListener('pointercancel', this._onPointerCancel);
-		window.addEventListener('blur', this._onBlur);
-		document.addEventListener('visibilitychange', this._onVisibilityChange);
+		// this.domElement.addEventListener('pointerdown', this._onPointerDown);
+		// window.addEventListener('pointerup', this._onPointerUp);
+		// this.domElement.addEventListener('pointermove', this._onPointerMove);
+		// window.addEventListener('pointercancel', this._onPointerCancel);
+		// window.addEventListener('blur', this._onBlur);
+		// document.addEventListener('visibilitychange', this._onVisibilityChange);
 	}
 
 	private _unbindEvents(): void {
@@ -124,215 +130,73 @@ export class InputStack {
 		window.removeEventListener('mouseup', this._onMouseUp);
 		this.domElement.removeEventListener('wheel', this._onWheel);
 		this.domElement.removeEventListener('mousemove', this._onMouseMove);
-		this.domElement.removeEventListener('pointerdown', this._onPointerDown);
-		window.removeEventListener('pointerup', this._onPointerUp);
-		this.domElement.removeEventListener('pointermove', this._onPointerMove);
-		window.removeEventListener('pointercancel', this._onPointerCancel);
-		window.removeEventListener('blur', this._onBlur);
-		document.removeEventListener('visibilitychange', this._onVisibilityChange);
+		// this.domElement.removeEventListener('pointerdown', this._onPointerDown);
+		// window.removeEventListener('pointerup', this._onPointerUp);
+		// this.domElement.removeEventListener('pointermove', this._onPointerMove);
+		// window.removeEventListener('pointercancel', this._onPointerCancel);
+		// window.removeEventListener('blur', this._onBlur);
+		// document.removeEventListener('visibilitychange', this._onVisibilityChange);
 	}
 
-	// ─── DOM 事件处理器（箭头函数保持引用稳定）────
+	_onKeyDown = (e: KeyboardEvent) => {
+		let key = e.key.toLowerCase();
+		let blocked = false;
+		for (let i = this._layers.length - 1; i >= 0; i--) {
+			const layer = this._layers[i];
 
-	private _onKeyDown = (event: KeyboardEvent): void => {
-		KeyboardInput._onKeyDown(event);
-		this._propagateKeyDown(event.key.toLowerCase(), event.repeat, event);
-		event.preventDefault();
-	};
-
-	private _onKeyUp = (event: KeyboardEvent): void => {
-		KeyboardInput._onKeyUp(event);
-		this._propagateKeyUp(event.key.toLowerCase(), event);
-		event.preventDefault();
-	};
-
-	private _onMouseDown = (event: MouseEvent): void => {
-		if (!event.isTrusted) {
-			return; // 不吃假的/克隆的事件, 以防止和再分发给pixi的事件冲突
-		}
-		MouseInput._onMouseDown(event);
-		const button = this._buttonEventName(event.button, 'Down');
-		this._propagateButton(button, event);
-		event.preventDefault();
-	};
-
-	private _onMouseUp = (event: MouseEvent): void => {
-		if (!event.isTrusted) {
-			return;
-		}
-		MouseInput._onMouseUp(event);
-		const button = this._buttonEventName(event.button, 'Up');
-		this._propagateButton(button, event);
-		event.preventDefault();
-	};
-
-	private _onWheel = (event: WheelEvent): void => {
-		if (!event.isTrusted) {
-			return;
-		}
-		MouseInput._onWheel(event);
-		const wheel: WheelState = { x: event.deltaX, y: event.deltaY, z: event.deltaZ };
-		this._propagateWheel(wheel, event);
-		// event.preventDefault();
-	};
-
-	private _onMouseMove = (event: MouseEvent): void => {
-		if (!event.isTrusted) {
-			return;
-		}
-		MouseInput._onMouseMove(event);
-		this._propagateMouseMove();
-	};
-
-	private _onPointerDown = (event: PointerEvent): void => {
-		if (!event.isTrusted) return;
-		PointerInput._onPointerDown(event);
-		this._propagatePointerDown(event);
-	};
-
-	private _onPointerUp = (event: PointerEvent): void => {
-		if (!event.isTrusted) return;
-		PointerInput._onPointerUp(event);
-		this._propagatePointerUp(event);
-	};
-
-	private _onPointerMove = (event: PointerEvent): void => {
-		if (!event.isTrusted) return;
-		PointerInput._onPointerMove(event);
-		this._propagatePointerMove(event);
-	};
-
-	private _onPointerCancel = (event: PointerEvent): void => {
-		if (!event.isTrusted) return;
-		PointerInput._onPointerCancel(event);
-		this._propagatePointerCancel(event);
-	};
-
-	private _onBlur = (): void => {
-		KeyboardInput._resetAllKeys();
-		PointerInput._resetAllPointers();
-		for (const layer of this._layers) {
-			layer._reset();
-		}
-	};
-
-	private _onVisibilityChange = (): void => {
-		if (document.hidden) {
-			KeyboardInput._resetAllKeys();
-			PointerInput._resetAllPointers();
-			for (const layer of this._layers) {
-				layer._reset();
+			if (!blocked) layer._handleKeyUpdate(key, true)
+			else layer._handleKeyUpdate(key, false);				
+			
+			
+			if (layer.keyboard.blocks === "all" || layer.keyboard.blocks.includes(key)) {
+				blocked = true;
 			}
 		}
-	};
+		e.preventDefault();
+	}
 
-	// ─── 事件派发（栈顶→栈底，遇阻断停止）────────
-
-	private _propagateKeyDown(key: string, repeat: boolean, event: KeyboardEvent): void {
+	_onKeyUp = (e: KeyboardEvent) => {
+		let key = e.key.toLowerCase();
 		for (let i = this._layers.length - 1; i >= 0; i--) {
-			const layer = this._layers[i]!;
-			layer._handleKeyDown(key, repeat, event);
-			if (this._blocksPropagation(layer, key)) break;
+			const layer = this._layers[i];
+			layer._handleKeyUpdate(key, false);
 		}
 	}
 
-	private _propagateKeyUp(key: string, event: KeyboardEvent): void {
+	_onMouseDown = (e: MouseEvent) => {
+		let blocked = false;
 		for (let i = this._layers.length - 1; i >= 0; i--) {
-			const layer = this._layers[i]!;
-			layer._handleKeyUp(key, event);
-			if (this._blocksPropagation(layer, key)) break;
+			const layer = this._layers[i];
+
+			if (!blocked) layer._handleMouseBtnUpdate(e.button, true, e);
+			else layer._handleMouseBtnUpdate(e.button, false, e);
+
+			if (layer.mouse.modal) {
+				blocked = true;
+			}
 		}
 	}
 
-	private _propagateWheel(wheel: WheelState, event: WheelEvent): void {
+	_onMouseUp = (e: MouseEvent) => {
 		for (let i = this._layers.length - 1; i >= 0; i--) {
-			const layer = this._layers[i]!;
-			layer._handleWheel(wheel, event);
-			if (layer.modal) break;
+			const layer = this._layers[i];
+			layer._handleMouseBtnUpdate(e.button, false, e);
 		}
 	}
 
-	private _propagateButton(button: string, event: MouseEvent): void {
+	_onMouseMove = (e: MouseEvent) => {
 		for (let i = this._layers.length - 1; i >= 0; i--) {
-			const layer = this._layers[i]!;
-			layer._handleButton(button, event);
-			if (layer.modal) break;
+			const layer = this._layers[i];
+			layer._handleMousePosUpdate(e);
+			if (layer.mouse.modal) return; // stop bottom update
 		}
-	}
+	} 
 
-	/**
-	 * 鼠标移动：坐标和按钮状态始终同步到所有层。
-	 * 坐标是「环境信息」而非「可消费输入」。
-	 */
-	private _propagateMouseMove(): void {
-		for (const layer of this._layers) {
-			layer._handleMouseMove(
-				MouseInput.x,
-				MouseInput.y,
-				MouseInput.movement.x,
-				MouseInput.movement.y,
-			);
-			layer._setButtonState(
-				MouseInput.left,
-				MouseInput.right,
-				MouseInput.middle,
-			);
-		}
-	}
-
-	/** pointerdown：栈顶→栈底，遇 modal 阻断 */
-	private _propagatePointerDown(event: PointerEvent): void {
+	_onWheel = (e: WheelEvent) => {
 		for (let i = this._layers.length - 1; i >= 0; i--) {
-			const layer = this._layers[i]!;
-			layer._handlePointerDown(event);
-			if (layer.modal) break;
-		}
-	}
-
-	/** pointerup：栈顶→栈底，遇 modal 阻断 */
-	private _propagatePointerUp(event: PointerEvent): void {
-		for (let i = this._layers.length - 1; i >= 0; i--) {
-			const layer = this._layers[i]!;
-			layer._handlePointerUp(event);
-			if (layer.modal) break;
-		}
-	}
-
-	/** pointermove：坐标同步到所有层（环境信息，不受阻断） */
-	private _propagatePointerMove(event: PointerEvent): void {
-		for (const layer of this._layers) {
-			layer._handlePointerMove(event);
-		}
-	}
-
-	/** pointercancel：广播到所有层 */
-	private _propagatePointerCancel(event: PointerEvent): void {
-		for (const layer of this._layers) {
-			layer._handlePointerCancel(event);
-		}
-	}
-
-	// ─── 传播判断 ────────────────────────────────
-
-	/**
-	 * 判断当前层是否阻断 key 向更低层传播。
-	 * modal 层阻断全部；blockKey='all' 阻断全部；
-	 * blockKey 数组匹配到当前 key 则阻断。
-	 */
-	private _blocksPropagation(layer: InputLayer, key: string): boolean {
-		if (layer.modal) return true;
-		if (layer.blockKey === 'all') return true;
-		if (Array.isArray(layer.blockKey) && layer.blockKey.includes(key)) return true;
-		return false;
-	}
-
-	/** 鼠标按钮号 → 事件名映射 */
-	private _buttonEventName(button: number, suffix: 'Down' | 'Up'): string {
-		switch (button) {
-			case 0: return `left${suffix}`;
-			case 1: return `middle${suffix}`;
-			case 2: return `right${suffix}`;
-			default: return `button${button}${suffix}`;
+			const layer = this._layers[i];
+			layer._handleWheel(e);
+			if (layer.mouse.modal) return; // stop bottom update
 		}
 	}
 }
