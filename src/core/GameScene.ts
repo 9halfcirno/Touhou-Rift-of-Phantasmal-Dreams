@@ -4,6 +4,9 @@ import { GameMap } from '../map/GameMap.js';
 import { Config } from './Config.js';
 import { type Game } from './Game.js';
 import { GameCamera } from '@/objects/GameCamera.js';
+import { GameSceneRenderer } from '@/graphics/GameSceneRenderer.js';
+import { BloomPass, FilmPass, UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { HelixCurve } from 'three/examples/jsm/curves/CurveExtras.js';
 
 /**
  * 游戏场景（Three.js 渲染管理层）
@@ -35,6 +38,9 @@ export class GameScene {
 	/** 当前使用的摄像机 */
 	camera: GameCamera;
 
+	/** 使用的渲染器 */
+	renderer: GameSceneRenderer;
+
 	/** 默认摄像机, 在没有地图的时候使用该相机 */
 	defaultCamera: GameCamera;
 
@@ -44,18 +50,30 @@ export class GameScene {
 	constructor(args: { width: number; height: number; game: Game }) {
 		const scene = new THREE.Scene();
 
-		const renderer = new THREE.WebGLRenderer({
-			antialias: true
-		});
-		renderer.setSize(args.width, args.height);
-		renderer.setClearColor(0x000000);
-		renderer.setPixelRatio(window.devicePixelRatio);
-		renderer.shadowMap.enabled = true;
-
 		this.defaultCamera = new GameCamera({
 			aspect: Config["game_aspect"],
 		});
 		this.camera = this.defaultCamera;
+		
+		const renderer = new GameSceneRenderer(scene, this.camera);
+		this.renderer = renderer;
+		renderer.setSize(args.width, args.height);
+
+		let bloom = new UnrealBloomPass(
+			new THREE.Vector2(window.innerWidth, window.innerHeight),
+			1.2,  // 强度
+			0,  // 半径
+			0.67  // 阈值
+		);
+		renderer.composer.addPass(bloom);
+
+		let pass = new FilmPass(0);
+		renderer.composer.addPass(pass);
+
+
+		renderer.renderMode = "composer";
+
+
 
 		this.domElement = renderer.domElement;
 		this.domElement.id = `${args.game.domElement.id}-scene-canvas`;
@@ -77,7 +95,7 @@ export class GameScene {
 		this.three = {
 			scene,
 			camera: this.defaultCamera.three.camera,
-			renderer,
+			renderer: renderer.renderer,
 			ambLight,
 			dirLight
 		};
@@ -128,7 +146,7 @@ export class GameScene {
 		height: number,
 		aspect: number
 	}) {
-
+		this.renderer.setSize(opts.width, opts.height);
 		this.refreshThreeArgs({ aspect: opts.aspect, width: opts.width, height: opts.height });
 	}
 
@@ -175,13 +193,19 @@ export class GameScene {
 	render(opts: { progress?: number } = {}): void {
 		this.currentMap?.tweenThree(opts.progress ?? 1);
 		this._updateLightPosition();
-		this.three.renderer.render(this.three.scene, this.camera.three.camera || this.defaultCamera.three.camera);
+		this.renderer.render();
+		// this.three.renderer.render(this.three.scene, this.camera.three.camera || this.defaultCamera.three.camera);
 	}
 
 	// ─── 逻辑更新 ─────────────────────────────────
 
 	update(ctx: { frame: number; game: Game }): void {
 		this.currentMap?.update(ctx);
+	}
+
+	updateCamera(cam?: GameCamera) {
+		this.camera = cam || this.defaultCamera;
+		this.renderer.camera = this.camera;
 	}
 
 	// ─── GameMap 管理 ─────────────────────────────
@@ -217,7 +241,8 @@ export class GameScene {
 		this.currentMap?._exitScene();
 		this.currentMap = map;
 		map._enterScene();
-		this.camera = map.camera || this.defaultCamera;
+		this.updateCamera(map.camera);
+		// this.camera = map.camera || this.defaultCamera;
 	}
 
 	removeGameMap(map: GameMap): void {
@@ -230,7 +255,7 @@ export class GameScene {
 
 		this.gameMaps.delete(map.id);
 		if (this.camera === found.camera) {
-			this.camera = this.defaultCamera;
+			this.updateCamera();
 		}
 		found._exitScene();
 		this.three.scene.remove(found.three.group!);
