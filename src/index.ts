@@ -1,9 +1,11 @@
 /**
- * 桶导出 —— 替代原 code/module_all.js
+ * 桶导出
  *
- * 当前（第三阶段）已完成全引擎迁移。
  * 命名空间 "th" 保留为游戏主命名空间。
  */
+// --- 前置库 -----------------------------------
+import '@pixi/layout';
+import '@pixi/layout/devtools'
 
 // ─── 核心引擎 ───────────────────────────────────
 export { Game } from './core/Game.js';
@@ -54,10 +56,6 @@ export { GameObject, GameObject2D, GameCamera } from './objects/index.js';
 
 // --- UI相关 ---------------------------------
 export {
-  UIObject,
-  UIContainer,
-  UIImage,
-  UILabel,
   UILayer,
   UIStack,
  } from "./ui/index.js"

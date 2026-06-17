@@ -7,6 +7,7 @@ import * as TH from './index.js';
 import * as THREE from 'three';
 import * as PIXI from "pixi.js";
 import { InputLayer } from './input/InputLayer.js';
+import { Button } from '@pixi/ui';
 
 // ─── 窗口配置 ───────────────────────────────────
 
@@ -39,12 +40,15 @@ document.getElementById('game')!.append(game.domElement);
 // ─── 鼠标滚轮调整相机距离 ─────────────────────
 
 let debugInput = new InputLayer("main-debug");
-let uiInput = new InputLayer("ui-debug");
+let uiInput = new InputLayer("ui-debug", {
+	modal: true,
+	blockKey: "all"
+});
 game.InputStack.push(debugInput)
 
 debugInput.mouse.onWheel((wheel) => {
 	if (game.scene.currentMap?.camera === game.scene.camera) {
-		TH.Config.camera_distance += wheel.y * 0.01;
+		TH.Config.camera_distance += wheel.deltaY * 0.01;
 	}
 });
 
@@ -55,7 +59,7 @@ async function init() {
 	// 1. 启用 debug 模式（Grid + OrbitControls）
 	await game.$debug({
 		console: true,
-		fpsAndTps: true,
+		// fpsAndTps: true,
 		scene: true,
 		debugDiv: true
 	});
@@ -133,28 +137,59 @@ async function init() {
 		}
 		return `${game.UIStack.layerCount} 层 | 栈顶: 无`;
 	}));
+	debugUpdates.push(game.$addDebugItem("InputStack", () => {
+		const top = game.InputStack.top;
+		if (top) {
+			return `${game.InputStack.layerCount} 层 | 栈顶: ${top.name}`;
+		}
+		return `${game.InputStack.layerCount} 层 | 栈顶: 无`;
+	}));
 
 	// ─── HUD 层 ─────────────────────────────────────
 	let tex = await (TH.TextureLoader.get("th:texture=entity/reimu"));
 	let reimuTex = await TH.TextureLoader.get("th:texture=reimu");
 
 	// ─── HUD 层（非 modal，输入可穿透到下层）─────────────────
-	const hudLayer = new TH.UILayer(game.ui.pixi.app.stage, 'hud', { input: { modal: false } });
+	const hudLayer = new TH.UILayer(game.ui.pixi.app.stage, 'hud', {
+		input: { modal: false },
+		layout: {
+			backgroundColor: 0xffffff,
+			borderRadius: 8,
+			alignItems: "center"
+		}
+	});
 	game.UIStack.push(hudLayer);
-	let icon = new TH.UIImage(tex!.toPIXI());
+	let icon = new PIXI.Sprite(tex!.toPIXI());
 	// icon.scale.set(3);
+	icon.layout = {
+		width: 20,
+		height: 20
+	}
 
-	hudLayer.add(icon);
+	// hudLayer.add(icon);
 
-	let reimu = new PIXI.Sprite(reimuTex!.toPIXI());
-	reimu.position.set(hudLayer.pixi.group.width, 200)
-	reimu.anchor.set(1, 1);
-	hudLayer.add(reimu);
+	let btn = new Button(icon);
+	hudLayer.add(btn.view!);
+	btn.onPress.connect(() => {
+		console.log("icon pressed!");
+		
+	})
+	
 
-	// icon.on("pointerdown", (e) => {
-	// 	console.log("icon clicked!");
-	// })
-	// icon.eventMode = "static";	
+	const container = new PIXI.Container({
+		layout: {
+			position: "relative",
+			width: "100%",
+			height: "60%",
+			justifyContent: 'center',
+			flexDirection: 'row',
+			alignContent: 'center',
+			flexWrap: 'wrap',
+			gap: 4,
+		},
+	});
+
+	hudLayer.add(container);	
 
 	// 7. 调试球（红色小球跟随鼠标）
 	const debugSphere = new THREE.Mesh(
@@ -196,53 +231,22 @@ async function init() {
 			game.InputStack.push(uiInput);
 	})
 
-	uiInput.keyboard.onKey("2", (k, e) => {
+	uiInput.keyboard.onKey("2", (k) => {
 		if (k.down)
 			game.InputStack.pop();
 	})
 
-	uiInput.pointer.on("pointerdown", (w) => {
-		if (!w) return;
-		const clonedEvent = new PointerEvent(w.type, w);
+	// uiInput.pointer.on("pointerdown", (w) => {
+	// 	if (!w) return;
+	// 	const clonedEvent = new PointerEvent(w.type, w);
 
-		// 2. 把复印件分发给 Pixi 喵
-		const isSuccess = game.ui.pixi.app.renderer.events.domElement.dispatchEvent(clonedEvent);
-
-		// console.log(w, isSuccess);
-	})
-
-	// ─── UIStack 测试例 ──────────────────────────
-
-	// 弹窗层（默认 modal，阻断下层输入，但不隐藏下层 UI）
-	const popupLayer = new TH.UILayer(undefined, 'popup');
-	const popupBg = new PIXI.Graphics();
-	popupBg.rect(0, 0, 500, 120).fill({ color: 0x000000, alpha: 0.5 });
-	popupLayer.add(popupBg);
-
-	const popupText = new PIXI.Text({
-		text: '弹窗层 (modal)\n3: 关闭弹窗  1: push InputLayer  2: pop InputLayer',
-		style: { fill: 0xffffff, fontSize: 22 },
-	});
-	popupText.x = 20;
-	popupText.y = 20;
-	popupLayer.add(popupText);
-
-	// 3: push 弹窗 → UIStack 栈顶，输入被阻断
-	debugInput.keyboard.onKey('3', (k) => {
-		if (k.down) game.UIStack.push(popupLayer);
-	});
-
-	// 4: pop 弹窗 → 下层（HUD / debugInput）恢复输入
-	popupLayer.input.keyboard.onKey('4', (k) => {
-		if (k.down) game.UIStack.pop();
-	});
+	// 	// 2. 把复印件分发给 Pixi
+	// 	const isSuccess = game.ui.domElement.dispatchEvent(clonedEvent);
+	// })
 
 	// 11. Tick 回调：更新 debug 信息
 	game.afterTick(() => {
-		const point = TH.MouseInput.inMapPosition(
-			game.scene.camera,
-			game.scene.currentMap || mainMap,
-		);
+		const point = game.InputStack.bottom.mouse.positionInMap(game.scene.camera, mainMap)
 		if (point) {
 			debugSphere.position.set(point.x, point.y, point.z);
 		}

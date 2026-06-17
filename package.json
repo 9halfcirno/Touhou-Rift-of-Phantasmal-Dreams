@@ -19,7 +19,9 @@
   },
   "dependencies": {
     "@neutralinojs/lib": "^6.8.0",
-    "pixi.js": "^8.0.0",
+    "@pixi/layout": "^3.2.1",
+    "@pixi/ui": "^2.3.2",
+    "pixi.js": "^8.19.0",
     "three": "^0.171.0"
   }
 }
