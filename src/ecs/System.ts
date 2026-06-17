@@ -1,5 +1,5 @@
 import type { EntityQuery } from './EntityQuery.js';
-import type { ComponentType, SystemUpdateContext } from '../core/types.js';
+import type { SystemUpdateContext } from '../core/types.js';
 import { THID } from '@/resources/THID.js';
 
 /**
@@ -29,7 +29,7 @@ export abstract class System {
 
   constructor(opts: {
     name?: string;
-    requireComponents?: Array<ComponentType>;
+    requireComponents?: Array<string>;
     priority?: number;
   } = {}) {
     this.name = opts.name || 'UnnamedSystem';
