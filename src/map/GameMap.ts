@@ -122,10 +122,6 @@ export class GameMap {
     this._threeManager.remove(obj.three.object3d!);
     this.objects.delete(obj.uuid);
     obj.inMap = null;
-
-    if (obj instanceof Entity) {
-      this.entityManager.removeEntity(obj);
-    }
   }
 
   clearObjects(): void {
@@ -136,11 +132,20 @@ export class GameMap {
   // ─── 实体管理 ─────────────────────────────────
 
   addEntity(ent: Entity): void {
-    if (ent.manager !== this.entityManager) {
-      ent.manager && ent.manager.removeEntity(ent);
-      this.entityManager.addEntity(ent);
+    if (ent.inMap && ent.inMap !== this) {
+      (ent.inMap as GameMap).removeEntity(ent);
     }
+    this.entityManager.addEntity(ent);
+
     this.addObject(ent);
+  }
+
+  removeEntity(e: Entity) {
+    if (e.manager === this.entityManager) {
+      e.manager.removeEntity(e);
+    
+      this.removeObject(e);
+    }
   }
 
   // ─── 场景切换 ─────────────────────────────────

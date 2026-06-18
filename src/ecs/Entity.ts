@@ -187,6 +187,7 @@ export class Entity extends GameObject2D {
     if (!this.isAlive) return;
     this.isAlive = false;
     this.manager!.removeEntity(this.uuid);
+    this.inMap?.removeEntity(this);
     this._disposeThree();
     // 销毁其他数据
     this.manager = null;
