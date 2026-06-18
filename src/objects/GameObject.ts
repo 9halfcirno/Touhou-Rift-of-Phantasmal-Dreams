@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Position, Vector2 } from '../math/Position.ts';
 import { Config } from '../core/Config.ts';
 import { uuid } from '@/utils/uuid.ts';
+import { type GameMap } from '@/map/index.ts';
 
 /**
  * 游戏对象基类
@@ -50,7 +51,7 @@ export class GameObject extends EventTarget {
 
 
 	/** 所在 GameMap（由 GameMap.addObject 设置） */
-	inMap: unknown = null;
+	inMap: GameMap | null = null;
 
 	// ─── 构造函数 ─────────────────────────────────
 
@@ -147,8 +148,8 @@ export class GameObject extends EventTarget {
 		}
 
 		// 从地图中移除
-		if (this.inMap && typeof (this.inMap as { removeObject?: (obj: GameObject) => void }).removeObject === 'function') {
-			(this.inMap as { removeObject: (obj: GameObject) => void }).removeObject(this);
+		if (this.inMap && typeof (this.inMap as GameMap).removeObject === 'function') {
+			(this.inMap as GameMap).removeObject(this);
 		}
 		this.three.object3d?.removeFromParent(); // 确保彻底从场景中移除
 
