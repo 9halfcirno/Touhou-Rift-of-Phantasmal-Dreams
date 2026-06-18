@@ -10,10 +10,10 @@ import { Config } from './Config.js';
 export class RenderSystem {
   frame = 0;
   renderDelta = 0;
+  fps = 0;
 
   private _renderId = 0;
   private _lastFrameTime = 0;
-  private _lastRenderTime = 0;
 
   /** 由 Game 注入的渲染回调 */
   update: (() => void) | null = null;
@@ -29,25 +29,15 @@ export class RenderSystem {
       return;
     }
 
-    const maxFPS = Config.max_fps === 0 ? 10000 : (Config.max_fps || 60);
-    const minFrameTime = 1000 / maxFPS;
-
     this._lastFrameTime = performance.now();
-    this._lastRenderTime = this._lastFrameTime;
 
-    const keepRender = (now: number) => {
+    const keepRender = () => {
+      let now = performance.now();
       this.renderDelta = (now - this._lastFrameTime) / 1000;
+      this.fps = Math.floor(1 / this.renderDelta);
       this._lastFrameTime = now;
 
-      if (now - this._lastRenderTime >= minFrameTime) {
-        this._lastRenderTime += minFrameTime;
-
-        if (now - this._lastRenderTime > 1000) {
-          this._lastRenderTime = now;
-        }
-
-        this.render();
-      }
+      this.render();
 
       this._renderId = requestAnimationFrame(keepRender);
     };
