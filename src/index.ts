@@ -7,6 +7,12 @@
 import '@pixi/layout';
 import '@pixi/layout/devtools'
 
+// 初始化Neu
+if (window.Neutralino !== undefined) {
+  window.Neutralino.init();
+}
+
+
 // ─── 核心引擎 ───────────────────────────────────
 export { Game } from './core/Game.js';
 export { GameScene } from './core/GameScene.js';
