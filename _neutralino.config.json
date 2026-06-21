@@ -16,7 +16,8 @@
   "nativeAllowList": [
     "app.*",
     "os.*",
-    "debug.log"
+    "debug.log",
+    "filesystem.*"
   ],
   "globalVariables": {
     "TEST1": "Hello",
@@ -41,7 +42,7 @@
       "fullScreen": false,
       "alwaysOnTop": false,
       "icon": "/resources/assets/icon.png",
-      "enableInspector": false,
+      "enableInspector": true,
       "borderless": false,
       "maximize": false,
       "hidden": false,
