@@ -1,6 +1,6 @@
 {
-	"id": "th:entity=character/reimu",
-	"texture": "th:texture=entity/reimu",
+	"id": "th:entity=character.reimu",
+	"texture": "th:texture=entity.reimu",
 	"module": "th:model=game_2d",
 
 	"components": {

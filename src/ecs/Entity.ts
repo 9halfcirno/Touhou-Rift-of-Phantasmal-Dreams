@@ -41,7 +41,7 @@ export class Entity extends GameObject2D {
     }
 
     const runPath = (globalThis as Record<string, unknown>).GAME_CONFIG_RUN_PATH || '';
-    const url = `${runPath}/definitions/entities/${parsed.id}.json`;
+    const url = `${runPath}/definitions/entities/${parsed.id.replace(".", "/")}.json`;
 
     const entity = (await (await fetch(url)).json()) as EntityDefinition;
     EntityManager.entityDefinitions.set(entity.id, entity);

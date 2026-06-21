@@ -1,6 +1,6 @@
 {
-	"id": "th:entity=enemy/fairy",
-	"texture": "th:texture=entity/fairy",
+	"id": "th:entity=enemy.fairy",
+	"texture": "th:texture=entity.fairy",
 	"module": "th:model=game_2d",
 
 	"components": {

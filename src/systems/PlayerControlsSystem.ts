@@ -80,7 +80,7 @@ export class PlayerControlsSystem extends System {
 					world,
 				);
 				if (mousePos) {
-					const bullet = world.entityManager.createEntity('th:entity=bullet/ball', {
+					const bullet = world.entityManager.createEntity('th:entity=bullet.ball', {
 						position: entity.position,
 						rotation: new THREE.Vector2(1, 0),
 						frame: world.frame,

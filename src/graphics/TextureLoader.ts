@@ -40,7 +40,8 @@ export const TextureLoader = {
     if (a.type !== 'texture') {
       throw new Error(`[Texture] 错误的thid类型: ${thid}`);
     }
-    return `${_runPath}/assets/textures/${a.id}.png`;
+    let url = a.id.replace(".", "/");
+    return `${_runPath}/assets/textures/${url}.png`;
   },
 
   /**
