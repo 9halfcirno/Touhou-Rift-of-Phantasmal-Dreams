@@ -40,6 +40,9 @@ export { THID } from './resources/THID.js';
 export { Texture } from './graphics/Texture.js';
 export { TextureLoader, setRunPath } from './graphics/TextureLoader.js';
 
+// --- 存储 ---------------------------------------
+export { Storage } from "./storage/index.ts";
+
 // ─── 工具 ───────────────────────────────────────
 export { uuid } from './utils/uuid.ts';
 

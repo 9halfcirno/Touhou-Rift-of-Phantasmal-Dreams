@@ -75,19 +75,19 @@ async function init() {
 	game.scene.addGameMap(sebMap);
 
 	// 3. 加载纹理
-	await TH.TextureLoader.load('th:texture=entity/reimu');
-	await TH.TextureLoader.load('th:texture=bullet/小玉');
-	await TH.TextureLoader.load('th:texture=entity/fairy');
+	await TH.TextureLoader.load('th:texture=entity.reimu');
+	await TH.TextureLoader.load('th:texture=bullet.小玉');
+	await TH.TextureLoader.load('th:texture=entity.fairy');
 	await TH.TextureLoader.load('th:texture=reimu');
 
 	// 4. 注册实体定义
-	await TH.Entity.register('th:entity=bullet/ball');
-	await TH.Entity.register('th:entity=character/reimu');
-	await TH.Entity.register('th:entity=enemy/fairy');
+	await TH.Entity.register('th:entity=bullet.ball');
+	await TH.Entity.register('th:entity=character.reimu');
+	await TH.Entity.register('th:entity=enemy.fairy');
 
 	// 5. 创建玩家实体
 	const entity = game.scene.currentMap!.entityManager.createEntity(
-		'th:entity=character/reimu',
+		'th:entity=character.reimu',
 	);
 	game.scene.currentMap!.addEntity(entity);
 
@@ -95,7 +95,7 @@ async function init() {
 	for (let i = 0; i < 10; i++) {
 		for (let j = 0; j < 10; j++) {
 			const enemy = game.scene.currentMap!.entityManager.createEntity(
-				'th:entity=enemy/fairy',
+				'th:entity=enemy.fairy',
 			);
 			mainMap.addObject(enemy);
 			enemy.setPosition(i * 5, 0, j * 5);
@@ -124,11 +124,12 @@ async function init() {
 	debugUpdates.push(game.$addDebugItem("frame", () => {
 		return game.scene.currentMap!.frame;
 	}));
-	debugUpdates.push(game.$addDebugItem("renderDelta", () => {
-		return game.RenderSystem.renderDelta.toFixed(3) + "s";
+	debugUpdates.push(game.$addDebugItem("render", () => {
+		let str = `delta ${game.RenderSystem.renderDelta.toFixed(3)}s - fps ${game.RenderSystem.fps}`
+		return str;
 	}));
 	debugUpdates.push(game.$addDebugItem("mouse screen", () => {
-		return `${TH.MouseInput.x}, ${TH.MouseInput.y}`;
+		return `${game.InputStack.bottom.mouse.x}, ${game.InputStack.bottom.mouse.y}`;
 	}));
 	debugUpdates.push(game.$addDebugItem("UIStack", () => {
 		const top = game.UIStack.top;
@@ -172,9 +173,9 @@ async function init() {
 	hudLayer.add(btn.view!);
 	btn.onPress.connect(() => {
 		console.log("icon pressed!");
-		
+
 	})
-	
+
 
 	const container = new PIXI.Container({
 		layout: {
@@ -189,7 +190,7 @@ async function init() {
 		},
 	});
 
-	hudLayer.add(container);	
+	hudLayer.add(container);
 
 	// 7. 调试球（红色小球跟随鼠标）
 	const debugSphere = new THREE.Mesh(
@@ -200,10 +201,12 @@ async function init() {
 
 	// 8. Q 键切换地图
 	debugInput.keyboard.onKey('q', (k) => {
-		if (k.down)
+		if (k.down) {
 			game.scene.switchToGameMap(
 				mainMap === game.scene.currentMap ? sebMap : mainMap,
 			);
+			game.scene.currentMap?.addEntity(entity)
+		}
 	});
 
 	// 9. Z 键扣血
@@ -229,6 +232,10 @@ async function init() {
 	debugInput.keyboard.onKey("1", (k) => {
 		if (k.down)
 			game.InputStack.push(uiInput);
+	})
+
+	debugInput.keyboard.onKey("z", (k) => {
+		game.storage.write(`key.z`, Date.now().toString())
 	})
 
 	uiInput.keyboard.onKey("2", (k) => {

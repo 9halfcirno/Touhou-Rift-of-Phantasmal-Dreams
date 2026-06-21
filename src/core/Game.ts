@@ -14,6 +14,7 @@ import { Config } from './Config.js';
 import { GameUI } from './GameUI.js';
 import eruda from 'eruda';
 import { THEvent } from '@/events/THEvent.js';
+import { Storage } from '@/storage/Storage.js';
 
 /**
  * 游戏入口类
@@ -30,6 +31,7 @@ export class Game extends EventTarget {
 	readonly MouseInput = MouseInput;
 	readonly InputStack: InputStack;
 	readonly UIStack: UIStack;
+	readonly storage: Storage = new Storage();
 	readonly domElement: HTMLDivElement;
 	private _inited: boolean = false;
 
@@ -88,6 +90,8 @@ export class Game extends EventTarget {
 		this.domElement.append(this.ui.domElement as HTMLElement);
 
 		this.updateGameSize();
+
+		await this.storage.init();
 
 		// 注入更新回调
 		this.TickSystem.update = () => this.tick();
