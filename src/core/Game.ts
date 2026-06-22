@@ -10,11 +10,11 @@ import '../components/index.js';
 import '../systems/index.js';
 import { InputStack } from '@/input/InputStack.js';
 import { UIStack } from '@/ui/UIStack.js';
-import { Config } from './Config.js';
+import { Config } from '../configs/Config.js';
 import { GameUI } from './GameUI.js';
 import eruda from 'eruda';
-import { THEvent } from '@/events/THEvent.js';
 import { Storage } from '@/storage/Storage.js';
+import { Setting } from './Setting.js';
 
 /**
  * 游戏入口类
@@ -22,7 +22,7 @@ import { Storage } from '@/storage/Storage.js';
  * 整合 Scene、Tick、Render、输入。
  * 迁移自 code/Game.js
  */
-export class Game extends EventTarget {
+export class Game {
 	readonly scene: GameScene;
 	readonly ui: GameUI;
 	readonly TickSystem: TickSystem;
@@ -32,6 +32,7 @@ export class Game extends EventTarget {
 	readonly InputStack: InputStack;
 	readonly UIStack: UIStack;
 	readonly storage: Storage = new Storage();
+	readonly setting: Setting = new Setting(this.storage);
 	readonly domElement: HTMLDivElement;
 	private _inited: boolean = false;
 
@@ -43,7 +44,6 @@ export class Game extends EventTarget {
 		height: number;
 		runPath: string;
 	}) {
-		super();
 		// 注入运行路径
 		setRunPath(config.runPath);
 
@@ -98,11 +98,6 @@ export class Game extends EventTarget {
 		this.RenderSystem.update = () => this.render();
 
 		this._inited = true;
-		// 派发初始化事件
-		this.dispatchEvent(new THEvent("th:game_inited", {
-			from: this,
-			event: {}
-		}));
 	}
 
 	run(): void {

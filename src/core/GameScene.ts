@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GameMap } from '../map/GameMap.js';
-import { Config } from './Config.js';
+import { Config } from '../configs/Config.js';
 import { type Game } from './Game.js';
 import { GameCamera } from '@/objects/GameCamera.js';
 import { GameSceneRenderer } from '@/graphics/GameSceneRenderer.js';
@@ -146,7 +146,7 @@ export class GameScene {
 		height: number,
 		aspect: number
 	}) {
-		this.renderer.setSize(opts.width, opts.height);
+		this.renderer.setSize(opts.width, opts.height, this.game.setting.get("display.resolution") as number || 1);
 		this.refreshThreeArgs({ aspect: opts.aspect, width: opts.width, height: opts.height });
 	}
 
@@ -185,7 +185,7 @@ export class GameScene {
 	refreshThreeArgs(args: { aspect?: number; width: number; height: number }): void {
 		this.camera.three.camera.aspect = args.aspect ?? args.width / args.height;
 		this.camera.three.camera.updateProjectionMatrix();
-		this.three.renderer.setSize(args.width, args.height);
+		// this.three.renderer.setSize(args.width, args.height);
 	}
 
 	// ─── 渲染 ─────────────────────────────────────

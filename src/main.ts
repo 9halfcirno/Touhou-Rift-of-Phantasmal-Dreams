@@ -124,10 +124,13 @@ async function init() {
 	debugUpdates.push(game.$addDebugItem("frame", () => {
 		return game.scene.currentMap!.frame;
 	}));
-	debugUpdates.push(game.$addDebugItem("render", () => {
+	debugUpdates.push(game.$addDebugItem("Render", () => {
 		let str = `delta ${game.RenderSystem.renderDelta.toFixed(3)}s - fps ${game.RenderSystem.fps}`
 		return str;
 	}));
+	debugUpdates.push(game.$addDebugItem("Tps", () => {
+		return game.TickSystem.tps;
+	}))
 	debugUpdates.push(game.$addDebugItem("mouse screen", () => {
 		return `${game.InputStack.bottom.mouse.x}, ${game.InputStack.bottom.mouse.y}`;
 	}));
@@ -148,7 +151,6 @@ async function init() {
 
 	// ─── HUD 层 ─────────────────────────────────────
 	let tex = await (TH.TextureLoader.get("th:texture=entity/reimu"));
-	let reimuTex = await TH.TextureLoader.get("th:texture=reimu");
 
 	// ─── HUD 层（非 modal，输入可穿透到下层）─────────────────
 	const hudLayer = new TH.UILayer(game.ui.pixi.app.stage, 'hud', {
@@ -211,11 +213,9 @@ async function init() {
 
 	// 9. Z 键扣血
 	debugInput.keyboard.onKey('z', (k) => {
-		if (k.down) return;
 		entity.addComponent(TH.Component.create("th:damage", {
 			value: 1
 		}))
-		if (!entity.isAlive) debugger;
 		console.log('z pressed - hp:');
 	});
 
@@ -234,22 +234,21 @@ async function init() {
 			game.InputStack.push(uiInput);
 	})
 
-	debugInput.keyboard.onKey("z", (k) => {
-		game.storage.write(`key.z`, Date.now().toString())
-	})
+	// debugInput.keyboard.onKey("all", (k) => {
+	// 	game.storage.write(`key.${k.name}`, Date.now().toString())
+	// })
 
 	uiInput.keyboard.onKey("2", (k) => {
 		if (k.down)
 			game.InputStack.pop();
 	})
 
-	// uiInput.pointer.on("pointerdown", (w) => {
-	// 	if (!w) return;
-	// 	const clonedEvent = new PointerEvent(w.type, w);
+	
 
-	// 	// 2. 把复印件分发给 Pixi
-	// 	const isSuccess = game.ui.domElement.dispatchEvent(clonedEvent);
-	// })
+	game.setting.onChange("display.resolution", (c) => {
+		game.scene.renderer.resolution = c.value as number;
+	})
+
 
 	// 11. Tick 回调：更新 debug 信息
 	game.afterTick(() => {

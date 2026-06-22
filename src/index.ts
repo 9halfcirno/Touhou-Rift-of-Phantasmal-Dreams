@@ -16,10 +16,11 @@ if (window.Neutralino !== undefined) {
 // ─── 核心引擎 ───────────────────────────────────
 export { Game } from './core/Game.js';
 export { GameScene } from './core/GameScene.js';
-export { Config } from './core/Config.js';
+export { Config } from './configs/Config.js';
 export { TickSystem } from './core/TickSystem.js';
 export { RenderSystem } from './core/RenderSystem.js';
-export type { GameConfigData } from './core/Config.js';
+export type { GameConfigData } from './configs/Config.js';
+export { Setting } from "./core/Setting.ts";
 
 // ─── 类型 ───────────────────────────────────────
 export type {
@@ -42,7 +43,7 @@ export type {
 export type { HealthData } from './components/HealthyComponent.js';
 
 // ─── 资源 ───────────────────────────────────────
-export { THID } from './resources/THID.js';
+export { THID } from './protocol/THID.js';
 export { Texture } from './graphics/Texture.js';
 export { TextureLoader, setRunPath } from './graphics/TextureLoader.js';
 
