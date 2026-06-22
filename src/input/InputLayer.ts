@@ -12,6 +12,7 @@ import { NodeMaterial } from 'three/webgpu';
 export interface KeyState {
 	down: boolean;
 	repeat: boolean;
+	name: string;
 }
 
 export type ButtonType = "left" | "right" | "middle";
@@ -90,7 +91,7 @@ class Keyboard {
 		this.layer = layer;
 
 		if (blocks === "all") this.blocks = "all";
-		else blocks && Array.isArray(this.blocks) && this.blocks.push(...blocks)
+		else blocks && Array.isArray(blocks) && (this.blocks as Array<string>).push(...blocks)
 	}
 
 	key(k: string): KeyState {
@@ -98,7 +99,8 @@ class Keyboard {
 		if (!this._key.has(k)) {
 			let key = {
 				down: false,
-				repeat: false
+				repeat: false,
+				name: k
 			}
 			this._key.set(k, key);
 		}
@@ -116,7 +118,10 @@ class Keyboard {
 	}
 
 	private _handleOnKey(k: string) {
-		let arr = this._onKeyCB.get(k);
+		let arr = [
+			...this._onKeyCB.get(k) || [],
+			...this._onKeyCB.get("all") || []
+		];
 		if (!arr) return;
 		for (const cb of arr) {
 			cb(this.key(k));
