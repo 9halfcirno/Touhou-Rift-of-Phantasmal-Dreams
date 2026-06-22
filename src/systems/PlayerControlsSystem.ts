@@ -56,18 +56,14 @@ export class PlayerControlsSystem extends System {
 
 			if (entity.hasComponent("th:sprint")) {
 				let sprint = entity.getComponent("th:sprint");
-				if (input.keyboard.key(' ').down) {
+				if (input.keyboard.key(' ').down &&
+					(!SPRINT_COOLDOWN.has(entity)
+						|| game.TickSystem.frame - SPRINT_COOLDOWN.get(entity)!.time > sprint!.data.cooldown)) {
 
-					if (!SPRINT_COOLDOWN.has(entity)
-						|| game.TickSystem.frame - SPRINT_COOLDOWN.get(entity)!.time > sprint!.data.cooldown) {
+					SPRINT_COOLDOWN.set(entity, { time: game.TickSystem.frame })
 
-						SPRINT_COOLDOWN.set(entity, { time: game.TickSystem.frame })
-					}
 				} else {
-					if (SPRINT_COOLDOWN.has(entity)
-						&& game.TickSystem.frame - SPRINT_COOLDOWN.get(entity)!.time <= sprint!.data.time) {
-						let { x, y, z } = entity.movementVector;
-						let sum = (x + y + z) || 1;
+					if (SPRINT_COOLDOWN.has(entity)  && game.TickSystem.frame - SPRINT_COOLDOWN.get(entity)!.time <= sprint!.data.time) {
 						let speed = sprint!.data.speed;
 						entity.step(speed);
 					}
