@@ -116,8 +116,8 @@ export class InputStack {
 		// window.addEventListener('pointerup', this._onPointerUp);
 		// this.domElement.addEventListener('pointermove', this._onPointerMove);
 		// window.addEventListener('pointercancel', this._onPointerCancel);
-		// window.addEventListener('blur', this._onBlur);
-		// document.addEventListener('visibilitychange', this._onVisibilityChange);
+		window.addEventListener('blur', this._onBlur);
+		document.addEventListener('visibilitychange', this._onBlur);
 	}
 
 	private _unbindEvents(): void {
@@ -134,8 +134,8 @@ export class InputStack {
 		// window.removeEventListener('pointerup', this._onPointerUp);
 		// this.domElement.removeEventListener('pointermove', this._onPointerMove);
 		// window.removeEventListener('pointercancel', this._onPointerCancel);
-		// window.removeEventListener('blur', this._onBlur);
-		// document.removeEventListener('visibilitychange', this._onVisibilityChange);
+		window.removeEventListener('blur', this._onBlur);
+		document.removeEventListener('visibilitychange', this._onBlur);
 	}
 
 	_onKeyDown = (e: KeyboardEvent) => {
@@ -197,6 +197,14 @@ export class InputStack {
 			const layer = this._layers[i];
 			layer._handleWheel(e);
 			if (layer.mouse.modal) return; // stop bottom update
+		}
+	}
+
+	_onBlur = () => {
+		// 当窗口失去焦点时，为了安全起见，直接重置栈内所有输入层的所有按键和鼠标状态
+		// 这样能百分之百避免任何层产生“卡键”灵异现象喵！
+		for (let i = this._layers.length - 1; i >= 0; i--) {
+			this._layers[i]._reset();
 		}
 	}
 }
