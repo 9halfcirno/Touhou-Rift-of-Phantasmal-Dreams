@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { THID } from '../resources/THID.js';
+import { THID } from '../protocol/THID.js';
 import { Texture } from './Texture.js';
 import type { RuntimeConfig } from '../core/types.js';
 

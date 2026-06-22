@@ -1,5 +1,5 @@
 import { Entity } from './Entity.js';
-import { THID } from '../resources/THID.js';
+import { THID } from '../protocol/THID.js';
 import { EntityQuery } from './EntityQuery.js';
 import type { EntityDefinition } from '../core/types.js';
 

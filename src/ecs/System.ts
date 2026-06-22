@@ -1,6 +1,6 @@
 import type { EntityQuery } from './EntityQuery.js';
 import type { SystemUpdateContext } from '../core/types.js';
-import { THID } from '@/resources/THID.js';
+import { THID } from '@/protocol/THID.js';
 
 /**
  * ECS 系统基类

@@ -1,4 +1,4 @@
-import { THID } from "@/resources/THID";
+import { THID } from "@/protocol/THID";
 
 export class Component<D = any> {
   type: string;

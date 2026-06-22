@@ -4,7 +4,7 @@ import { Texture } from '../graphics/Texture.js';
 import { TextureLoader } from '../graphics/TextureLoader.js';
 import { Component } from './Component.js';
 import { EntityManager } from './EntityManager.js';
-import { THID } from '../resources/THID.js';
+import { THID } from '../protocol/THID.js';
 import { Position, Vector2, Vector3 } from '../math/Position.js';
 import type { EntityDefinition } from '../core/types.js';
 import { GameObject } from '@/objects/GameObject.js';
@@ -245,7 +245,7 @@ export class Entity extends GameObject2D {
   addComponent(c: Component) {
     if (this.hasComponent(c.type)) console.warn(`[Entity] 已有 ${c.type} 组件, 将覆盖原组件`);
     
-    this.components!.set(c.type, c);
+    this.components?.set(c.type, c);
 
     if (!this._initializing) {
       this.manager?.onComponentAdded(this, c.type);

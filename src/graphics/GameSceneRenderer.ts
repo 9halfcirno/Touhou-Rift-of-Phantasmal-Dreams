@@ -8,6 +8,8 @@ export class GameSceneRenderer {
 	readonly composer: EffectComposer;
 	private renderPass: RenderPass;
 
+	resolution: number = 1;
+
 	private _scene: THREE.Scene;
 	private _camera: THREE.Camera;
 
@@ -32,10 +34,10 @@ export class GameSceneRenderer {
 		this._scene = scene;
 	}
 
-	setSize(w: number, h: number, scale: number = 1) {
-		this.composer.setSize(w * scale, h * scale);
+	setSize(w: number, h: number, resolution: number = this.resolution) {
+		this.composer.setSize(w * resolution, h * resolution);
 
-		this.renderer.setSize(w * scale, h * scale, false);
+		this.renderer.setSize(w * resolution, h * resolution, false);
 		this.renderer.domElement.style.width = "100%";
 		this.renderer.domElement.style.height = "100%";
 	}
