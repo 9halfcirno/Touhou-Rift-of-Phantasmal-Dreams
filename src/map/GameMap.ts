@@ -6,8 +6,8 @@ import { GameCamera } from '../objects/GameCamera.js';
 import { GameObject } from '../objects/GameObject.js';
 import { System } from '../ecs/System.js';
 import { Entity } from '../ecs/Entity.js';
-import { Config } from '../core/Config.js';
-import { THID } from '../resources/THID.js';
+import { Config } from '../configs/Config.js';
+import { THID } from '../protocol/THID.js';
 import type { GameMapDefinition } from '../core/types.js';
 import { type Game } from '@/core/Game.js';
 

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Position, Vector2 } from '../math/Position.ts';
-import { Config } from '../core/Config.ts';
+import { Config } from '../configs/Config.ts';
 import { uuid } from '@/utils/uuid.ts';
 import { type GameMap } from '@/map/index.ts';
 

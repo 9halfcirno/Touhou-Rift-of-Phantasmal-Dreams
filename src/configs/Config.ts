@@ -1,4 +1,4 @@
-import type { GameConfigData } from './types.js';
+import type { GameConfigData } from '../core/types.js';
 
 /**
  * 游戏全局配置

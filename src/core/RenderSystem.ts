@@ -1,4 +1,4 @@
-import { Config } from './Config.js';
+import { Config } from '../configs/Config.js';
 
 /**
  * 可变帧率渲染循环

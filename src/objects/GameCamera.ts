@@ -2,7 +2,7 @@ import { GameObject } from './GameObject.js';
 import { Position } from '../math/Position.js';
 import * as THREE from 'three';
 import type { RuntimeConfig } from '../core/types.js';
-import { Config } from '@/core/Config.js';
+import { Config } from '@/configs/Config.js';
 
 /**
  * 游戏摄像机

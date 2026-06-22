@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GameObject } from './GameObject.js';
-import { Config } from '../core/Config.js';
+import { Config } from '../configs/Config.js';
 import { Texture } from '../graphics/Texture.js';
 import type { Position } from '../math/Position.js';
 

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { System } from '../ecs/System.js';
-import { Config } from '../core/Config.js';
+import { Config } from '../configs/Config.js';
 import type { SystemUpdateContext } from '../core/types.js';
 import { Entity } from '@/ecs/Entity.js';
 

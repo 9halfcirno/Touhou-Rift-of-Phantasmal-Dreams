@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Config } from '../core/Config.js';
+import { Config } from '../configs/Config.js';
 
 /**
  * 游戏坐标系位置

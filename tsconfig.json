@@ -42,7 +42,7 @@
       "@graphics/*": ["./src/graphics/*"],
       "@input/*": ["./src/input/*"],
       "@math/*": ["./src/math/*"],
-      "@resources/*": ["./src/resources/*"],
+      "@protocol/*": ["./src/protocol/*"],
       "@managers/*": ["./src/managers/*"],
       "@animation/*": ["./src/animation/*"],
       "@utils/*": ["./src/utils/*"]

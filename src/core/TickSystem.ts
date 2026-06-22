@@ -1,4 +1,4 @@
-import { Config } from './Config.js';
+import { Config } from '../configs/Config.js';
 
 /**
  * 固定步长逻辑循环（25Hz）
@@ -12,6 +12,7 @@ export class TickSystem {
   frame = 0;
   tickP = 0;
   tickDelta = 0;
+  tps: number = 0;
 
   private _lastTickTime = 0;
   private _maxTickNum = 5;
@@ -28,7 +29,8 @@ export class TickSystem {
   tick(): void {
     const now = Date.now();
     let tickCount = 0;
-    this.tickDelta = (now - this._lastTickTime) / Config.game_tick_interval;
+    this.tickDelta = (now - this._lastTickTime) / 1000;
+    this.tps = Math.floor(1 / this.tickDelta);
 
     while (this.needTick() && tickCount < this._maxTickNum) {
       this.update?.();
