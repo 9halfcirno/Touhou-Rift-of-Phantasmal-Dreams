@@ -14,6 +14,8 @@ export class Texture {
 	readonly uuid = uuid();
 	readonly three: { texture: THREE.Texture };
 
+	readonly thid;
+
 	/** 每单位像素数（默认 16） */
 	pixelsPerUnit: number;
 	pixi: { texture?: PIXI.Texture; } = { texture: undefined };
@@ -36,6 +38,7 @@ export class Texture {
 
 		this.pixelsPerUnit =
 			(this.three.texture.userData?.pixelsPerUnit as number) || 16;
+		this.thid = this.three.texture.userData.thid;
 	}
 
 	/** 纹理宽度（像素） */

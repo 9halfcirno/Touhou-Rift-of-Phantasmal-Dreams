@@ -227,6 +227,12 @@ async function init() {
 		}
 	});
 
+	debugInput.keyboard.onKey("t", () => {
+		entity.addComponent(TH.Component.create("th:display", {
+			texture: "th:texture=bullet.小玉"
+		}));
+	})
+
 	// game.ui.pixi.app.renderer.removeAllListeners();
 
 	debugInput.keyboard.onKey("1", (k) => {

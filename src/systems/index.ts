@@ -9,3 +9,4 @@ export { HealthySystem } from './HealthySystem.js';
 export { CollisionSystem } from './CollisionSystem.js';
 export { PlayerControlsSystem } from './PlayerControlsSystem.js';
 export { DamageHandleSystem } from "./DamageHandleSystem.js";
+export { DisplaySystem } from "./DisplaySystem.js"

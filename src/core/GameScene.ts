@@ -61,9 +61,9 @@ export class GameScene {
 
 		let bloom = new UnrealBloomPass(
 			new THREE.Vector2(window.innerWidth, window.innerHeight),
-			1.2,  // 强度
+			0.4,  // 强度
 			0,  // 半径
-			0.67  // 阈值
+			0.5  // 阈值
 		);
 		renderer.composer.addPass(bloom);
 

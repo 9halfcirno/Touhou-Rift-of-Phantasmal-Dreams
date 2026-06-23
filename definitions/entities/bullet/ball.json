@@ -4,7 +4,8 @@
 
 	"components": {
 		"th:display": {
-			"size": 0.6
+			"size": 0.6,
+			"texture": "th:texture=entity.reimu"
 		},
 		"th:speed": 0.5,
 		"th:max_life_time": 200,

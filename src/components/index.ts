@@ -16,3 +16,4 @@ export { PlayerControlsComponent } from './PlayerControlsComponent.js';
 export { BulletComponent } from './BulletComponent.js';
 export { DamageComponent } from "./DamageComponent.js";
 export { SprintComponent } from './SprintComponent.js';
+export { DisplayComponent } from "./DisplayComponent.js";
