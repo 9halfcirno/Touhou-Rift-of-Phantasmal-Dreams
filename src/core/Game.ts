@@ -89,9 +89,10 @@ export class Game {
 		await this.ui.init(this)
 		this.domElement.append(this.ui.domElement as HTMLElement);
 
-		this.updateGameSize();
-
 		await this.storage.init();
+		await this.setting.load();
+
+		this.updateGameSize();
 
 		// 注入更新回调
 		this.TickSystem.update = () => this.tick();
@@ -149,12 +150,20 @@ export class Game {
 		window.addEventListener("resize", () => {
 			this.updateGameSize();
 		})
+		this.setting.onChange("window.full_screen", (s) => {
+			if (s.value === true) {
+				this.domElement.requestFullscreen();
+			} else document.exitFullscreen();
+		})
 	}
 
 	private updateGameSize() {
 		const maxWidth = window.innerWidth;
 		const maxHeight = window.innerHeight;
-		const stageAspect = Config["game_aspect"] || 16 / 9;
+		let stageAspect = this.setting.get("window.aspect") || "window";
+		if (stageAspect === "window" || this.setting.get("window.full_screen"))
+			stageAspect = window.innerWidth / window.innerHeight;
+		else stageAspect = stageAspect as number;
 
 		let stageWidth: number, stageHeight: number;
 		if (maxWidth / maxHeight > stageAspect) {
@@ -166,12 +175,12 @@ export class Game {
 		}
 
 		this.scene.updateSize({
-			aspect: Config["game_aspect"],
+			aspect: stageAspect,
 			width: stageWidth,
 			height: stageHeight
 		});
 		this.ui.updateSize({
-			aspect: Config["game_aspect"],
+			aspect: stageAspect,
 			width: stageWidth,
 			height: stageHeight
 		});

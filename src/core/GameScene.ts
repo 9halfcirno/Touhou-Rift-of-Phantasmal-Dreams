@@ -147,7 +147,7 @@ export class GameScene {
 		aspect: number
 	}) {
 		this.renderer.setSize(opts.width, opts.height, this.game.setting.get("display.resolution") as number || 1);
-		this.refreshThreeArgs({ aspect: opts.aspect, width: opts.width, height: opts.height });
+		this.updateCamera(null, { aspect: opts.aspect || opts.width / opts.height });
 	}
 
 	// ─── Debug ────────────────────────────────────
@@ -182,12 +182,6 @@ export class GameScene {
 		this.debug.camera.position.set(2, 2, 2);
 	}
 
-	refreshThreeArgs(args: { aspect?: number; width: number; height: number }): void {
-		this.camera.three.camera.aspect = args.aspect ?? args.width / args.height;
-		this.camera.three.camera.updateProjectionMatrix();
-		// this.three.renderer.setSize(args.width, args.height);
-	}
-
 	// ─── 渲染 ─────────────────────────────────────
 
 	render(opts: { progress?: number } = {}): void {
@@ -203,9 +197,15 @@ export class GameScene {
 		this.currentMap?.update(ctx);
 	}
 
-	updateCamera(cam?: GameCamera) {
-		this.camera = cam || this.defaultCamera;
-		this.renderer.camera = this.camera;
+	updateCamera(cam?: GameCamera | null, opts: {aspect?: number} = {}) {
+		if (cam && this.camera !== cam) {
+			this.camera = cam || this.defaultCamera;
+			this.renderer.camera = this.camera;
+		}
+		if (opts.aspect) {
+			this.camera.three.camera.aspect = opts.aspect;
+			this.camera.three.camera.updateProjectionMatrix();
+		};
 	}
 
 	// ─── GameMap 管理 ─────────────────────────────
@@ -241,7 +241,7 @@ export class GameScene {
 		this.currentMap?._exitScene();
 		this.currentMap = map;
 		map._enterScene();
-		this.updateCamera(map.camera);
+		this.updateCamera(map.camera, {aspect: this.camera.three.camera.aspect});
 		// this.camera = map.camera || this.defaultCamera;
 	}
 
