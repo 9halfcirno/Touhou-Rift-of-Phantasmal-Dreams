@@ -21,7 +21,7 @@ export class Setting {
 	set(key: string, value: SettingValue) {
 		let old = this.get(key);
 		this.kv.set(key, value);
-		this._handleChange(key, old || null, this.get(key)!);
+		if (old !== value) this._handleChange(key, old || null, this.get(key)!);
 	}
 
 	get(key: string): SettingValue | undefined {

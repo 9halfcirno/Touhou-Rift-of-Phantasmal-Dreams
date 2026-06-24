@@ -5,7 +5,7 @@
 	"components": {
 		"th:display": {
 			"size": 0.6,
-			"texture": "th:texture=entity.reimu"
+			"texture": "th:texture=bullet.小玉"
 		},
 		"th:speed": 0.5,
 		"th:max_life_time": 200,

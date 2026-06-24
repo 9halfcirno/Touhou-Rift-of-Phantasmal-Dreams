@@ -32,6 +32,9 @@ const game = new TH.Game({
 	height: stageHeight,
 	runPath: RUN_PATH,
 });
+Object.defineProperty(window, "game", {
+	value: game
+});
 
 
 document.getElementById('game')!.append(game.domElement);
@@ -226,12 +229,6 @@ async function init() {
 			mainMap.destory();
 		}
 	});
-
-	debugInput.keyboard.onKey("t", () => {
-		entity.addComponent(TH.Component.create("th:display", {
-			texture: "th:texture=bullet.小玉"
-		}));
-	})
 
 	// game.ui.pixi.app.renderer.removeAllListeners();
 
