@@ -86,6 +86,7 @@ export class Texture {
 		let image = this.three.texture.image;
 
 		let pixiTex = PIXI.Texture.from(image);
+		pixiTex.source.scaleMode = "nearest";
 
 		this.pixi.texture = pixiTex
 		return pixiTex;
