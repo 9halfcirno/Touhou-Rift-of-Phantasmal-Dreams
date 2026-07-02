@@ -15,7 +15,6 @@ export class UILayer {
 	_uiStack: UIStack | null = null;
 
 	constructor(
-		parent?: PIXI.Container,
 		name?: string,
 		opts: {
 			/** InputLayer 构造选项（优先级高于顶层 modal/blockKey） */
@@ -40,9 +39,6 @@ export class UILayer {
 		});
 		this.container.visible = false;
 
-		if (parent) {
-			parent.addChild(this.container);
-		}
 	}
 
 	add(child: PIXI.ContainerChild) {

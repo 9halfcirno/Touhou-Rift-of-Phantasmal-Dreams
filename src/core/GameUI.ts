@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import { Game } from "./Game";
 import { LayoutStyles } from "@pixi/layout";
+import { UIStack } from "@/ui";
 
 export class GameUI {
 	pixi = {
@@ -9,6 +10,7 @@ export class GameUI {
 	private _orgWidth: number;
 	private _orgHeight: number;
 	public domElement: HTMLCanvasElement;
+	readonly stack: UIStack;
 
 	constructor(opts: {
 		width: number,
@@ -21,7 +23,9 @@ export class GameUI {
 		this.domElement = opts.canvas;
 		this.domElement.id = `${opts.game.domElement.id}-ui-scene`;
 		this.domElement.style.position = "absolute";
-		this.domElement.style.pointerEvents = "none";
+		// this.domElement.style.pointerEvents = "none";
+
+		this.stack = new UIStack(this.pixi.app.stage, opts.game.InputStack);
 	}
 
 	async init(game: Game, opts: {
