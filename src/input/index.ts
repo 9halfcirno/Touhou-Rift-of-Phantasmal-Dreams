@@ -6,3 +6,4 @@ export { PointerInput } from './PointerInput.js';
 export type { PointerState } from './PointerInput.js';
 export { InputLayer } from './InputLayer.js';
 export { InputStack } from './InputStack.js';
+export { KeyBindManager } from './KeyBindManager.js';
