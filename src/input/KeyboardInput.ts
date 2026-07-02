@@ -4,6 +4,11 @@
  * 由 InputStack 驱动更新，业务层不应直接使用。
  * 业务层应使用 InputLayer API。
  */
+
+/** 
+ * @deprecated
+ * @see InputLayer.ts KeyState
+ */
 export interface KeyState {
   down: boolean;
   repeat: boolean;

@@ -15,6 +15,7 @@ import { GameUI } from './GameUI.js';
 import eruda from 'eruda';
 import { Storage } from '@/storage/Storage.js';
 import { Setting } from './Setting.js';
+import { KeyBindManager } from '@/input/KeyBindManager.js';
 
 /**
  * 游戏入口类
@@ -27,10 +28,12 @@ export class Game {
 	readonly ui: GameUI;
 	readonly TickSystem: TickSystem;
 	readonly RenderSystem: RenderSystem;
+	/** @deprecated */
 	readonly KeyboardInput = KeyboardInput;
+	/** @deprecated */
 	readonly MouseInput = MouseInput;
 	readonly InputStack: InputStack;
-	readonly UIStack: UIStack;
+	readonly KeyBindManager = new KeyBindManager();
 	readonly storage: Storage = new Storage();
 	readonly setting: Setting = new Setting(this.storage);
 	readonly domElement: HTMLDivElement;
@@ -70,7 +73,7 @@ export class Game {
 
 
 		this.InputStack = new InputStack(this.domElement);
-		this.UIStack = new UIStack(this.ui.pixi.app.stage, this.InputStack);
+		this.KeyBindManager.connect(this.InputStack.bottom)
 
 		MouseInput.bind(this.domElement);
 
@@ -157,7 +160,7 @@ export class Game {
 		})
 	}
 
-	private updateGameSize() {
+	updateGameSize() {
 		const maxWidth = window.innerWidth;
 		const maxHeight = window.innerHeight;
 		let stageAspect = this.setting.get("window.aspect") || "window";
@@ -249,7 +252,7 @@ export class Game {
 		const update = () => {
 			let str = func(this);
 
-			span.innerHTML = `${name}: ${str}`;
+			span.innerText = `${name}: ${str}`;
 		}
 		update();
 		return update;

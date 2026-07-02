@@ -117,6 +117,15 @@ class Keyboard {
 		arr.push(cb);
 	}
 
+	offKey(k: string, cb: (key: KeyState) => void) {
+		let arr = this._onKeyCB.get(k);
+		if (!arr) return;
+		const index = arr.indexOf(cb);
+		if (index !== -1) {
+			arr.splice(index, 1);
+		}
+	}
+
 	private _handleOnKey(k: string) {
 		let arr = [
 			...this._onKeyCB.get(k) || [],

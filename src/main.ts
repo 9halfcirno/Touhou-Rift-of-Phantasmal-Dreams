@@ -7,7 +7,7 @@ import * as TH from './index.js';
 import * as THREE from 'three';
 import * as PIXI from "pixi.js";
 import { InputLayer } from './input/InputLayer.js';
-import { Button } from '@pixi/ui';
+import { Button, FancyButton } from '@pixi/ui';
 
 // ─── 窗口配置 ───────────────────────────────────
 
@@ -82,6 +82,8 @@ async function init() {
 	await TH.TextureLoader.load('th:texture=bullet.小玉');
 	await TH.TextureLoader.load('th:texture=entity.fairy');
 	await TH.TextureLoader.load('th:texture=reimu');
+	let uiTex = await TH.TextureLoader.load('th:texture=ui.ui_base');
+
 
 	// 4. 注册实体定义
 	await TH.Entity.register('th:entity=bullet.ball');
@@ -138,11 +140,11 @@ async function init() {
 		return `${game.InputStack.bottom.mouse.x}, ${game.InputStack.bottom.mouse.y}`;
 	}));
 	debugUpdates.push(game.$addDebugItem("UIStack", () => {
-		const top = game.UIStack.top;
+		const top = game.ui.stack.top;
 		if (top) {
-			return `${game.UIStack.layerCount} 层 | 栈顶: ${top.name}`;
+			return `${game.ui.stack.layerCount} 层 | 栈顶: ${top.name}`;
 		}
-		return `${game.UIStack.layerCount} 层 | 栈顶: 无`;
+		return `${game.ui.stack.layerCount} 层 | 栈顶: 无`;
 	}));
 	debugUpdates.push(game.$addDebugItem("InputStack", () => {
 		const top = game.InputStack.top;
@@ -156,46 +158,42 @@ async function init() {
 	let tex = await (TH.TextureLoader.get("th:texture=entity/reimu"));
 
 	// ─── HUD 层（非 modal，输入可穿透到下层）─────────────────
-	const hudLayer = new TH.UILayer(game.ui.pixi.app.stage, 'hud', {
+	const hudLayer = new TH.UILayer('hud', {
 		input: { modal: false },
 		layout: {
+			width: "100%",
+			height: "100%",
 			backgroundColor: 0xffffff,
 			borderRadius: 8,
-			alignItems: "center"
+			borderWidth: 5,
+			alignItems: "center",
+			justifyContent: "center"
 		}
 	});
-	game.UIStack.push(hudLayer);
+	game.ui.stack.push(hudLayer);
 	let icon = new PIXI.Sprite(tex!.toPIXI());
 	// icon.scale.set(3);
-	icon.layout = {
-		width: 20,
-		height: 20
-	}
+	// icon.layout = {
+	// 	width: 20,
+	// 	height: 20
+	// }
 
 	// hudLayer.add(icon);
 
-	let btn = new Button(icon);
-	hudLayer.add(btn.view!);
-	btn.onPress.connect(() => {
-		console.log("icon pressed!");
+	// let btn = new Button(icon);
+	// hudLayer.add(btn.view!);
+	// btn.onPress.connect(() => {
+	// 	console.log("icon pressed!");
 
-	})
+	// })
 
-
-	const container = new PIXI.Container({
-		layout: {
-			position: "relative",
-			width: "100%",
-			height: "60%",
-			justifyContent: 'center',
-			flexDirection: 'row',
-			alignContent: 'center',
-			flexWrap: 'wrap',
-			gap: 4,
-		},
-	});
-
-	hudLayer.add(container);
+	let nineSpr = new PIXI.NineSliceSprite(uiTex!.toPIXI());
+	nineSpr.leftWidth = 5;
+	nineSpr.rightWidth = 5;
+	nineSpr.topHeight = 5;
+	nineSpr.bottomHeight = 5;
+	nineSpr.scale.set(10);
+	hudLayer.add(nineSpr);
 
 	// 7. 调试球（红色小球跟随鼠标）
 	const debugSphere = new THREE.Mesh(
@@ -237,19 +235,20 @@ async function init() {
 			game.InputStack.push(uiInput);
 	})
 
-	// debugInput.keyboard.onKey("all", (k) => {
-	// 	game.storage.write(`key.${k.name}`, Date.now().toString())
-	// })
-
 	uiInput.keyboard.onKey("2", (k) => {
 		if (k.down)
 			game.InputStack.pop();
 	})
 
-	
+	game.KeyBindManager.bind("key:e", (k) => {
+		console.log("e pressed!");
+		
+		game.setting.set("display.resolution", game.setting.get("display.resolution") === 1 ? 0.1 : 1);
+	})
 
 	game.setting.onChange("display.resolution", (c) => {
 		game.scene.renderer.resolution = c.value as number;
+		game.updateGameSize();
 	})
 
 
@@ -269,4 +268,4 @@ async function init() {
 	console.log('☯️ 东方幻梦裂隙 ~Touhou Rift of Phantasmal Dreams~');
 }
 
-init().catch(console.error);
+init()

@@ -105,7 +105,13 @@ export {
 export { GameMap, GameSplicingMap } from './map/index.js';
 
 // ─── 输入 ───────────────────────────────────────
-export { KeyboardInput, MouseInput, PointerInput, InputLayer } from './input/index.js';
+export {
+  KeyboardInput,
+  MouseInput,
+  PointerInput,
+  InputLayer,
+  KeyBindManager
+} from './input/index.js';
 
 // ─── 副作用注册 ──────────────────────────────
 import './components/index.js';
