@@ -159,6 +159,7 @@ export class GameScene {
 			camera: new THREE.PerspectiveCamera(60, this.three.camera.aspect, 0.1, 1000),
 			controls: new OrbitControls(new THREE.PerspectiveCamera(), this.domElement),
 		};
+		this.debug.grid.position.set(0, 0.01, 0);
 
 		this.three.scene.add(this.debug.grid);
 
